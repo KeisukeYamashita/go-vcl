@@ -12,8 +12,8 @@ type Lexer struct {
 	char    byte
 }
 
-// New ...
-func New(input string) *Lexer {
+// NewParser ...
+func NewLexer(input string) *Lexer {
 	l := &Lexer{
 		input: input,
 	}
@@ -53,6 +53,18 @@ func (l *Lexer) readNumber() string {
 	return l.input[pos:l.pos]
 }
 
+func (l *Lexer) readString() string {
+	pos := l.pos + 1
+	for {
+		l.readChar()
+		if l.char == '"' || l.char == 0 {
+			break
+		}
+	}
+
+	return l.input[pos:l.pos]
+}
+
 func (l *Lexer) peekChar() byte {
 	if l.readPos >= len(l.input) {
 		return 0
@@ -68,17 +80,17 @@ func (l *Lexer) eatWhiteSpace() {
 }
 
 // NextToken ...
-func (l *Lexer) NextToken() *token.Token {
+func (l *Lexer) NextToken() token.Token {
 	l.eatWhiteSpace()
 
-	tok := new(token.Token)
+	tok := token.Token{}
 	switch l.char {
 	case '=':
 		if l.peekChar() == '=' {
 			char := l.char
 			l.readChar()
 			literal := string(char) + string(char)
-			tok = &token.Token{Type: token.EQUAL, Literal: literal}
+			tok = token.Token{Type: token.EQUAL, Literal: literal}
 		} else {
 			tok = token.NewToken(token.ASSIGN, l.char)
 		}
@@ -98,13 +110,16 @@ func (l *Lexer) NextToken() *token.Token {
 		tok = token.NewToken(token.LBRACE, l.char)
 	case '}':
 		tok = token.NewToken(token.RBRACE, l.char)
+	case '"':
+		tok.Type = token.STRING
+		tok.Literal = l.readString()
 	case '|':
 		// it will be always &&
 		if l.peekChar() == '|' {
 			char := l.char
 			l.readChar()
 			literal := string(char) + string(char)
-			tok = &token.Token{Type: token.OR, Literal: literal}
+			tok = token.Token{Type: token.OR, Literal: literal}
 		}
 	case '&':
 		// it will be always &&
@@ -112,7 +127,7 @@ func (l *Lexer) NextToken() *token.Token {
 			char := l.char
 			l.readChar()
 			literal := string(char) + string(char)
-			tok = &token.Token{Type: token.AND, Literal: literal}
+			tok = token.Token{Type: token.AND, Literal: literal}
 		}
 	case 0:
 		tok.Type = token.EOF

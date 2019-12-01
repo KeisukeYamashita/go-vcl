@@ -14,8 +14,10 @@ const (
 	EOF     = "EOF"
 	COMMENT = "COMMENT"
 
-	INDENT = "INDENT"
+	IDENT  = "IDENT"
 	INT    = "INT"
+	STRING = "STRING"
+	CIDR   = "CIDR"
 
 	ASSIGN = "="
 	MATCH  = "~"
@@ -32,29 +34,32 @@ const (
 	LBRACE = "{"
 	RBRACE = "}"
 
-	SUBROUTINE = "SUBROUTINE"
-	CALL       = "CALL"
-
 	IF = "IF"
 
-	RETURN = "RETURN"
-	IMPORT = "IMPORT"
+	RETURN     = "RETURN"
+	IMPORT     = "IMPORT"
+	ACL        = "ACL"
+	BACKEND    = "BACKEND"
+	SUBROUTINE = "SUBROUTINE"
+	CALL       = "CALL"
 )
 
 // NewToken ...
-func NewToken(tokenType Type, char byte) *Token {
-	return &Token{
+func NewToken(tokenType Type, char byte) Token {
+	return Token{
 		Type:    tokenType,
 		Literal: string(char),
 	}
 }
 
 var keywords = map[string]Type{
-	"sub":    SUBROUTINE,
-	"call":   CALL,
-	"if":     IF,
-	"return": RETURN,
-	"import": IMPORT,
+	"sub":     SUBROUTINE,
+	"call":    CALL,
+	"if":      IF,
+	"return":  RETURN,
+	"import":  IMPORT,
+	"acl":     ACL,
+	"backend": BACKEND,
 }
 
 // LookupIndent ...
@@ -63,5 +68,5 @@ func LookupIndent(indent string) Type {
 		return tokenType
 	}
 
-	return INDENT
+	return IDENT
 }

@@ -15,7 +15,7 @@ func TestNextToken(t *testing.T) {
 		}
 	}{
 		{
-			"=~,; call == && || 10",
+			`=~,; call == && || 10 "keke"`,
 			[]struct {
 				expectedType    token.Type
 				expectedLiteral string
@@ -29,6 +29,7 @@ func TestNextToken(t *testing.T) {
 				{token.AND, "&&"},
 				{token.OR, "||"},
 				{token.INT, "10"},
+				{token.STRING, "keke"},
 			},
 		},
 		{
@@ -43,18 +44,18 @@ func TestNextToken(t *testing.T) {
 				expectedLiteral string
 			}{
 				{token.SUBROUTINE, "sub"},
-				{token.INDENT, "pipe_if_local"},
+				{token.IDENT, "pipe_if_local"},
 				{token.LBRACE, "{"},
 				{token.IF, "if"},
 				{token.LPAREN, "("},
-				{token.INDENT, "client.ip"},
+				{token.IDENT, "client.ip"},
 				{token.MATCH, "~"},
-				{token.INDENT, "local"},
+				{token.IDENT, "local"},
 				{token.RPAREN, ")"},
 				{token.LBRACE, "{"},
 				{token.RETURN, "return"},
 				{token.LPAREN, "("},
-				{token.INDENT, "pipe"},
+				{token.IDENT, "pipe"},
 				{token.RPAREN, ")"},
 				{token.SEMICOLON, ";"},
 				{token.RBRACE, "}"},
@@ -68,18 +69,18 @@ func TestNextToken(t *testing.T) {
 				expectedLiteral string
 			}{
 				{token.IMPORT, "import"},
-				{token.INDENT, "directors"},
+				{token.IDENT, "directors"},
 				{token.SEMICOLON, ";"},
 				{token.COMMENT, "#"},
-				{token.INDENT, "load"},
-				{token.INDENT, "the"},
-				{token.INDENT, "directors"},
+				{token.IDENT, "load"},
+				{token.IDENT, "the"},
+				{token.IDENT, "directors"},
 			},
 		},
 	}
 
 	for i, tc := range testCases {
-		l := New(tc.input)
+		l := NewLexer(tc.input)
 
 		for j, expectedToken := range tc.expectedTokens {
 			tok := l.NextToken()
