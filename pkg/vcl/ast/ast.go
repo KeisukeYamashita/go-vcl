@@ -24,6 +24,18 @@ type Expression interface {
 	expressionNode()
 }
 
+type InfixExpression struct{
+	Token token.Token
+	Operator string
+	Left Expression
+	Right Expression
+}
+
+func (exp *InfixExpression) expressionNode() {}
+func (exp *InfixExpression) TokenLiteral() string {
+	return exp.Token.Literal
+}
+
 // AssignStatement holds the Name for the Identifier and its value
 type AssignStatement struct {
 	Token token.Token // token.ASSIGN
@@ -47,6 +59,17 @@ func (as *ReturnStatement) TokenLiteral() string {
 	return as.Token.Literal
 }
 
+// ReturnStatement holds the Name for the Identifier and its value
+type ExpressionStatement struct {
+	Token token.Token // token.ASSIGN
+	Expression Expression
+}
+
+func (as *ExpressionStatement) statementNode(){}
+func (as *ExpressionStatement) TokenLiteral() string {
+	return as.Token.Literal
+}
+
 // Identifier ...
 type Identifier struct {
 	Token token.Token // token.IDENT
@@ -55,5 +78,25 @@ type Identifier struct {
 
 func (i *Identifier) expressionNode(){}
 func (i *Identifier) TokenLiteral()string {
+	return i.Token.Literal
+}
+
+type IntegerLiteral struct {
+	Token token.Token
+	Value int64
+}
+
+func (i *IntegerLiteral) expressionNode(){}
+func (i *IntegerLiteral) TokenLiteral()string {
+	return i.Token.Literal
+}
+
+type BooleanLiteral struct {
+	Token token.Token
+	Value bool
+}
+
+func (i *BooleanLiteral) expressionNode(){}
+func (i *BooleanLiteral) TokenLiteral()string {
 	return i.Token.Literal
 }

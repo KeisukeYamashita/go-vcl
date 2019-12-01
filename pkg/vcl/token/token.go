@@ -18,6 +18,8 @@ const (
 	INT    = "INT"
 	STRING = "STRING"
 	CIDR   = "CIDR"
+	TRUE   = "TRUE"
+	FALSE  = "FALSE"
 
 	ASSIGN = "="
 	MATCH  = "~"
@@ -55,6 +57,8 @@ func NewToken(tokenType Type, char byte) Token {
 var keywords = map[string]Type{
 	"sub":     SUBROUTINE,
 	"call":    CALL,
+	"true":    TRUE,
+	"false":   FALSE,
 	"if":      IF,
 	"return":  RETURN,
 	"import":  IMPORT,

@@ -133,7 +133,7 @@ func (l *Lexer) NextToken() token.Token {
 		tok.Type = token.EOF
 		tok.Literal = ""
 	default:
-		// TODO(KeisukeYamashita): string and &&
+		// TODO(KeisukeYamashita): add cidr
 		if isLetter(l.char) {
 			tok.Literal = l.readIndentifier()
 			tok.Type = token.LookupIndent(tok.Literal)

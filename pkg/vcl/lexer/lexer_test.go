@@ -15,7 +15,7 @@ func TestNextToken(t *testing.T) {
 		}
 	}{
 		{
-			`=~,; call == && || 10 "keke"`,
+			`=~,; call == && || 10 "keke" false`,
 			[]struct {
 				expectedType    token.Type
 				expectedLiteral string
@@ -30,6 +30,7 @@ func TestNextToken(t *testing.T) {
 				{token.OR, "||"},
 				{token.INT, "10"},
 				{token.STRING, "keke"},
+				{token.FALSE, "false"},
 			},
 		},
 		{
