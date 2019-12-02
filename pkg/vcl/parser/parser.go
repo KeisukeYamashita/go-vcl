@@ -62,6 +62,7 @@ func (p *Parser) init() {
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 	p.registerPrefix(token.TRUE, p.parseBoolean)
 	p.registerPrefix(token.FALSE, p.parseBoolean)
+	p.registerPrefix(token.BANG, p.parsePrefixExpression)
 
 	p.infixParseFn = make(map[token.Type]infixParseFn)
 	p.registerInfix(token.MATCH, p.parseInfixExpression)
@@ -106,6 +107,17 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	precedence := p.curPrecedence()
 	p.nextToken()
 	expr.Right = p.parseExpression(precedence)
+	return expr
+}
+
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	expr := &ast.PrefixExpression{
+		Token:    p.curToken,
+		Operator: p.curToken.Literal,
+	}
+
+	p.nextToken()
+	expr.Right = p.parseExpression(PREFIX)
 	return expr
 }
 

@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/ast"
@@ -236,4 +237,59 @@ func TestParsingInfixExpressions(t *testing.T) {
 			t.Fatalf("parsingInfixExpression failed to get Operator[testCase:%d], got:%s, want:%s", n, exp.Operator, tc.operator)
 		}
 	}
+}
+
+func TestParsingPrefixExpressions(t *testing.T) {
+	testCases := []struct {
+		input        string
+		operator     string
+		integerValue int64
+	}{
+		{"!5", "!", 5},
+	}
+
+	for n, tc := range testCases {
+		l := lexer.NewLexer(tc.input)
+		p := NewParser(l)
+		program := p.ParseProgram()
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements wrong length got:%d, want:%d", len(program.Statements), 1)
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statement[0] is not ast.ExpressionStatement[testCase:%d], got:%T", n, program.Statements[0])
+		}
+
+		exp, ok := stmt.Expression.(*ast.PrefixExpression)
+		if !ok {
+			t.Fatalf("stmt is not ast.PrefixExpression, got:%T", stmt.Expression)
+		}
+
+		if exp.Operator != tc.operator {
+			t.Fatalf("prefixExpression operator does not match, got:%s, want:%s", exp.Operator, tc.operator)
+		}
+
+		if !testIntegerLiter(exp.Right, tc.integerValue) {
+			t.Fatalf("prefixExpression integerValue does not match want:%d", tc.integerValue)
+		}
+	}
+}
+
+func testIntegerLiter(il ast.Expression, value int64) bool {
+	integ, ok := il.(*ast.IntegerLiteral)
+	if !ok {
+		return false
+	}
+
+	if integ.Value != value {
+		return false
+	}
+
+	if integ.TokenLiteral() != fmt.Sprintf("%d", value) {
+		return false
+	}
+
+	return true
 }
