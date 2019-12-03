@@ -23,6 +23,7 @@ const (
 
 	ASSIGN = "="
 	MATCH  = "~"
+	PLUS   = "+"
 	BANG   = "!"
 	EQUAL  = "=="
 	AND    = "&&"
@@ -36,7 +37,8 @@ const (
 	LBRACE = "{"
 	RBRACE = "}"
 
-	IF = "IF"
+	IF   = "IF"
+	ELSE = "ELSE"
 
 	RETURN     = "RETURN"
 	IMPORT     = "IMPORT"
@@ -60,6 +62,7 @@ var keywords = map[string]Type{
 	"true":    TRUE,
 	"false":   FALSE,
 	"if":      IF,
+	"else":    ELSE,
 	"return":  RETURN,
 	"import":  IMPORT,
 	"acl":     ACL,

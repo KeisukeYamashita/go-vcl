@@ -12,6 +12,7 @@ import (
 var precedences = map[token.Type]int{
 	token.EQUAL: EQUALS,
 	token.MATCH: EQUALS,
+	token.PLUS:  SUM,
 	token.AND:   EQUALS,
 	token.OR:    EQUALS,
 }
@@ -60,12 +61,18 @@ func (p *Parser) init() {
 	p.prefixParseFn = make(map[token.Type]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
+	p.registerPrefix(token.STRING, p.parseStringLiteral)
 	p.registerPrefix(token.TRUE, p.parseBoolean)
 	p.registerPrefix(token.FALSE, p.parseBoolean)
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
+	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
+	p.registerPrefix(token.IF, p.parseIfExpression)
+	p.registerPrefix(token.SUBROUTINE, p.parseBlockExpression)
+	p.registerPrefix(token.ACL, p.parseBlockExpression)
 
 	p.infixParseFn = make(map[token.Type]infixParseFn)
 	p.registerInfix(token.MATCH, p.parseInfixExpression)
+	p.registerInfix(token.PLUS, p.parseInfixExpression)
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
@@ -90,11 +97,30 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	return lit
 }
 
+func (p *Parser) parseStringLiteral() ast.Expression {
+	lit := &ast.StringLiteral{
+		Token: p.curToken,
+		Value: p.curToken.Literal,
+	}
+
+	return lit
+}
+
 func (p *Parser) parseBoolean() ast.Expression {
 	return &ast.BooleanLiteral{
 		Token: p.curToken,
 		Value: p.curTokenIs(token.TRUE),
 	}
+}
+
+func (p *Parser) parseGroupedExpression() ast.Expression {
+	p.nextToken()
+	expr := p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+	return expr
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
@@ -119,6 +145,81 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	p.nextToken()
 	expr.Right = p.parseExpression(PREFIX)
 	return expr
+}
+
+func (p *Parser) parseIfExpression() ast.Expression {
+	expr := &ast.IfExpression{
+		Token: p.curToken,
+	}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	p.nextToken()
+	expr.Condition = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	expr.Consequence = p.parseBlockStatement()
+
+	if p.peekTokenIs(token.ELSE) {
+		p.nextToken()
+
+		if !p.expectPeek(token.LBRACE) {
+			return nil
+		}
+
+		expr.Alternative = p.parseBlockStatement()
+	}
+
+	return expr
+}
+
+func (p *Parser) parseBlockExpression() ast.Expression {
+	expr := &ast.BlockExpression{
+		Token: p.curToken,
+	}
+
+	p.nextToken()
+	var labels []string
+	for p.peekTokenIs(token.IDENT) {
+		p.nextToken()
+		labels = append(labels, p.curToken.Literal)
+	}
+
+	if !p.peekTokenIs(token.LBRACE) {
+		return nil
+	}
+
+	p.nextToken()
+
+	expr.Blocks = p.parseBlockStatement()
+	return expr
+}
+
+func (p *Parser) parseBlockStatement() *ast.BlockStatement {
+	block := &ast.BlockStatement{
+		Token: p.curToken,
+	}
+	block.Statements = []ast.Statement{}
+
+	p.nextToken()
+	if !p.curTokenIs(token.RBRACE) && !p.curTokenIs(token.EOF) {
+		stmt := p.parseStatement()
+		if stmt != nil {
+			block.Statements = append(block.Statements, stmt)
+		}
+		p.nextToken()
+	}
+
+	return block
 }
 
 func (p *Parser) registerPrefix(tokenType token.Type, fn prefixParseFn) {

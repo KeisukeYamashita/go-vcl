@@ -24,6 +24,7 @@ type Expression interface {
 	expressionNode()
 }
 
+// PrefixExpression ...
 type PrefixExpression struct {
 	Token    token.Token
 	Operator string
@@ -35,6 +36,7 @@ func (exp *PrefixExpression) TokenLiteral() string {
 	return exp.Token.Literal
 }
 
+// InfixExpression ...
 type InfixExpression struct {
 	Token    token.Token
 	Operator string
@@ -45,6 +47,42 @@ type InfixExpression struct {
 func (exp *InfixExpression) expressionNode() {}
 func (exp *InfixExpression) TokenLiteral() string {
 	return exp.Token.Literal
+}
+
+// IfExpression ...
+type IfExpression struct {
+	Token       token.Token
+	Condition   Expression
+	Consequence *BlockStatement
+	Alternative *BlockStatement
+}
+
+func (exp *IfExpression) expressionNode() {}
+func (exp *IfExpression) TokenLiteral() string {
+	return exp.Token.Literal
+}
+
+// BlockExpression ...
+type BlockExpression struct {
+	Token  token.Token
+	Labels []string
+	Blocks *BlockStatement
+}
+
+func (exp *BlockExpression) expressionNode() {}
+func (exp *BlockExpression) TokenLiteral() string {
+	return exp.Token.Literal
+}
+
+// BlockStatement ...
+type BlockStatement struct {
+	Token      token.Token // token.LBRACE
+	Statements []Statement
+}
+
+func (bs *BlockStatement) statementNode() {}
+func (bs *BlockStatement) TokenLiteral() string {
+	return bs.Token.Literal
 }
 
 // AssignStatement holds the Name for the Identifier and its value
@@ -70,7 +108,7 @@ func (as *ReturnStatement) TokenLiteral() string {
 	return as.Token.Literal
 }
 
-// ReturnStatement holds the Name for the Identifier and its value
+// ExpressionStatement holds the Name for the Identifier and its value
 type ExpressionStatement struct {
 	Token      token.Token // token.ASSIGN
 	Expression Expression
@@ -92,6 +130,7 @@ func (i *Identifier) TokenLiteral() string {
 	return i.Token.Literal
 }
 
+// IntegerLiteral ...
 type IntegerLiteral struct {
 	Token token.Token
 	Value int64
@@ -102,6 +141,7 @@ func (i *IntegerLiteral) TokenLiteral() string {
 	return i.Token.Literal
 }
 
+// BooleanLiteral ...
 type BooleanLiteral struct {
 	Token token.Token
 	Value bool
@@ -109,5 +149,16 @@ type BooleanLiteral struct {
 
 func (i *BooleanLiteral) expressionNode() {}
 func (i *BooleanLiteral) TokenLiteral() string {
+	return i.Token.Literal
+}
+
+// StringLiteral ...
+type StringLiteral struct {
+	Token token.Token
+	Value string
+}
+
+func (i *StringLiteral) expressionNode() {}
+func (i *StringLiteral) TokenLiteral() string {
 	return i.Token.Literal
 }

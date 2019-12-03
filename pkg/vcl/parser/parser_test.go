@@ -236,6 +236,14 @@ func TestParsingInfixExpressions(t *testing.T) {
 		if exp.Operator != tc.operator {
 			t.Fatalf("parsingInfixExpression failed to get Operator[testCase:%d], got:%s, want:%s", n, exp.Operator, tc.operator)
 		}
+
+		if !testIntegerLiter(exp.Right, tc.rightValue) {
+			t.Fatalf("parsingInfixExpression failed to get right value[testCase:%d], want:%d", n, tc.rightValue)
+		}
+
+		if !testIntegerLiter(exp.Right, tc.leftValue) {
+			t.Fatalf("parsingInfixExpression failed to getleft value[testCase:%d], want:%d", n, tc.leftValue)
+		}
 	}
 }
 
@@ -288,6 +296,250 @@ func testIntegerLiter(il ast.Expression, value int64) bool {
 	}
 
 	if integ.TokenLiteral() != fmt.Sprintf("%d", value) {
+		return false
+	}
+
+	return true
+}
+
+func TestOperatorPrecedenceParsing(t *testing.T) {
+	testCases := []struct {
+		input    string
+		expected string
+	}{
+		{"1+(2+3)+4", "((1+(2+3)) + 4)"},
+	}
+
+	for n, tc := range testCases {
+		l := lexer.NewLexer(tc.input)
+		p := NewParser(l)
+		program := p.ParseProgram()
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements wrong length got:%d, want:%d", len(program.Statements), 1)
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statement[0] is not ast.ExpressionStatement[testCase:%d], got:%T", n, program.Statements[0])
+		}
+		_ = stmt
+	}
+}
+
+func TestIfStatement(t *testing.T) {
+	testCases := []struct {
+		input string
+	}{
+		{"if (x ~ y) { x }"},
+	}
+
+	for n, tc := range testCases {
+		l := lexer.NewLexer(tc.input)
+		p := NewParser(l)
+		program := p.ParseProgram()
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements wrong length got:%d, want:%d", len(program.Statements), 1)
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statement[0] is not ast.ExpressionStatement[testCase:%d], got:%T", n, program.Statements[0])
+		}
+
+		expr, ok := stmt.Expression.(*ast.IfExpression)
+		if !ok {
+			t.Fatalf("program.Statement[0] is not ast.IfExpression[testCase:%d], got:%T", n, stmt.Expression)
+		}
+
+		if !testInfixExpression(t, expr.Condition, "x", "~", "y") {
+			t.Fatalf("ifStatement test failed to parse condition[testCase:%d]", n)
+		}
+
+		if len(expr.Consequence.Statements) != 1 {
+			t.Fatalf("consequence is not 1 statements[testCase:%d], got:%d", n, len(expr.Consequence.Statements))
+		}
+
+		consequence, ok := expr.Consequence.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("statement[0] in if consequence is not ast.ExpressionStatement[testCase:%d], got:%T", n, expr.Consequence.Statements[0])
+		}
+
+		if !testIdentifier(t, consequence.Expression, "x") {
+			t.Fatalf("ifStatement failed to test identifier[testCase:%d]", n)
+		}
+	}
+}
+
+func TestIfElseStatement(t *testing.T) {
+	testCases := []struct {
+		input string
+	}{
+		{`if (x ~ y) { 
+			x 
+		} else {
+			y
+		}`},
+	}
+
+	for n, tc := range testCases {
+		l := lexer.NewLexer(tc.input)
+		p := NewParser(l)
+		program := p.ParseProgram()
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements wrong length got:%d, want:%d", len(program.Statements), 1)
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statement[0] is not ast.ExpressionStatement[testCase:%d], got:%T", n, program.Statements[0])
+		}
+
+		expr, ok := stmt.Expression.(*ast.IfExpression)
+		if !ok {
+			t.Fatalf("program.Statement[0] is not ast.IfExpression[testCase:%d], got:%T", n, stmt.Expression)
+		}
+
+		if !testInfixExpression(t, expr.Condition, "x", "~", "y") {
+			t.Fatalf("ifStatement test failed to parse condition[testCase:%d]", n)
+		}
+
+		if len(expr.Consequence.Statements) != 1 {
+			t.Fatalf("consequence is not 1 statements[testCase:%d], got:%d", n, len(expr.Consequence.Statements))
+		}
+
+		consequence, ok := expr.Consequence.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("statement[0] in if consequence is not ast.ExpressionStatement[testCase:%d], got:%T", n, expr.Consequence.Statements[0])
+		}
+
+		if !testIdentifier(t, consequence.Expression, "x") {
+			t.Fatalf("ifStatement failed to test identifier[testCase:%d]", n)
+		}
+	}
+}
+
+func testIdentifier(t *testing.T, expr ast.Expression, value string) bool {
+	ident, ok := expr.(*ast.Identifier)
+	if !ok {
+		t.Errorf("expr is not ast.Identifier, got:%T", expr)
+		return false
+	}
+
+	if ident.Value != value {
+		t.Errorf("identifier value wrong, want:%s, got:%s", ident.Value, value)
+		return false
+	}
+
+	if ident.TokenLiteral() != value {
+		t.Errorf("identifier token literal wrong, want:%s, got:%s", ident.TokenLiteral(), value)
+		return false
+	}
+
+	return true
+}
+
+func testLiteralExpression(t *testing.T, expr ast.Expression, expected interface{}) bool {
+	switch v := expected.(type) {
+	case int:
+		return testIntegerLiter(expr, int64(v))
+	case int64:
+		return testIntegerLiter(expr, v)
+	case string:
+		return testIdentifier(t, expr, v)
+	}
+
+	return false
+}
+
+func testInfixExpression(t *testing.T, expr ast.Expression, left interface{}, operator string, right interface{}) bool {
+	opExp, ok := expr.(*ast.InfixExpression)
+	if !ok {
+		t.Errorf("expr is not ast.InfixExpression, got:%T", expr)
+		return false
+	}
+
+	if !testLiteralExpression(t, opExp.Left, left) {
+		t.Errorf("operationExpression.Right is not expected literal expression, right:%s, got:%s", opExp.Left, left)
+		return false
+	}
+
+	if opExp.Operator != operator {
+		t.Errorf("expr.Operator is wrong, got:%s, want:%s", opExp.Operator, operator)
+		return false
+	}
+
+	if !testLiteralExpression(t, opExp.Right, right) {
+		t.Errorf("operationExpression.Right is not expected literal expression, right:%s, got:%s", opExp.Right, right)
+		return false
+	}
+
+	return true
+}
+
+func TestBlockStatement(t *testing.T) {
+	testCases := []struct {
+		input           string
+		expectedLabels  []string
+		blockType       string
+		blockIdentifier string
+	}{
+		{"sub pipe_if_local { x }", []string{"pipe_if_local"}, "sub", "x"},
+		{"acl local { \"localhost\" }", []string{"local"}, "acl", "localhost"},
+	}
+
+	for n, tc := range testCases {
+		l := lexer.NewLexer(tc.input)
+		p := NewParser(l)
+		program := p.ParseProgram()
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements wrong length[testCase:%d] got:%d, want:%d", n, len(program.Statements), 1)
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statement[0] is not ast.ExpressionStatement[testCase:%d], got:%T", n, program.Statements[0])
+		}
+
+		expr, ok := stmt.Expression.(*ast.BlockExpression)
+		if !ok {
+			t.Fatalf("program.Statement[0] is not ast.BlockExpression[testCase:%d], got:%T", n, stmt.Expression)
+		}
+
+		if len(expr.Labels) == len(tc.expectedLabels) {
+			t.Fatalf("blockExpression labels length does not match, got:%d,  want:%d", len(expr.Labels), len(tc.expectedLabels))
+		}
+
+		block, ok := expr.Blocks.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("statement[0] in if consequence is not ast.ExpressionStatement[testCase:%d], got:%T", n, expr.Blocks.Statements[0])
+		}
+
+		switch block.Expression.(type) {
+		case *ast.Identifier:
+			if !testIdentifier(t, block.Expression, tc.blockIdentifier) {
+				t.Fatalf("blockExpression failed to test identifier[testCase:%d]", n)
+			}
+		case *ast.StringLiteral:
+			if !testStringLiteral(t, block.Expression, tc.blockIdentifier) {
+				t.Fatalf("blockExpression failed to test stringLiteral[testCase:%d]", n)
+			}
+		}
+	}
+}
+
+func testStringLiteral(t *testing.T, expr ast.Expression, value string) bool {
+	opExp, ok := expr.(*ast.StringLiteral)
+	if !ok {
+		t.Errorf("expr is not ast.InfixExpression, got:%T", expr)
+		return false
+	}
+
+	if opExp.Value != value {
+		t.Errorf("value of string literal wrong, got:%s, want:%s", opExp.Value, value)
 		return false
 	}
 
