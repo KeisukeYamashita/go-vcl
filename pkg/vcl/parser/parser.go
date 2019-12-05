@@ -62,6 +62,7 @@ func (p *Parser) init() {
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
+	p.registerPrefix(token.CIDR, p.parseCIDRLiteral)
 	p.registerPrefix(token.TRUE, p.parseBoolean)
 	p.registerPrefix(token.FALSE, p.parseBoolean)
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
@@ -99,6 +100,15 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 
 func (p *Parser) parseStringLiteral() ast.Expression {
 	lit := &ast.StringLiteral{
+		Token: p.curToken,
+		Value: p.curToken.Literal,
+	}
+
+	return lit
+}
+
+func (p *Parser) parseCIDRLiteral() ast.Expression {
+	lit := &ast.CIDRLiteral{
 		Token: p.curToken,
 		Value: p.curToken.Literal,
 	}

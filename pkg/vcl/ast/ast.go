@@ -162,3 +162,13 @@ func (i *StringLiteral) expressionNode() {}
 func (i *StringLiteral) TokenLiteral() string {
 	return i.Token.Literal
 }
+
+type CIDRLiteral struct {
+	Token token.Token
+	Value string
+}
+
+func (i *CIDRLiteral) expressionNode() {}
+func (i *CIDRLiteral) TokenLiteral() string {
+	return i.Token.Literal
+}
