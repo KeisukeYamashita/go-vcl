@@ -1,6 +1,8 @@
 package lexer
 
 import (
+	"strings"
+
 	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/token"
 )
 
@@ -12,7 +14,7 @@ type Lexer struct {
 	char    byte
 }
 
-// NewParser ...
+// NewLexer ...
 func NewLexer(input string) *Lexer {
 	l := &Lexer{
 		input: input,
@@ -55,10 +57,12 @@ func (l *Lexer) readNumber() string {
 
 func (l *Lexer) readString() string {
 	pos := l.pos + 1
-	for {
+	for l.char != 0 && l.char != ';' {
 		l.readChar()
-		if l.char == '"' || l.char == 0 {
-			break
+		if l.char == '"' {
+			if l.peekChar() != '/' {
+				break
+			}
 		}
 	}
 
@@ -115,8 +119,14 @@ func (l *Lexer) NextToken() token.Token {
 	case '+':
 		tok = token.NewToken(token.PLUS, l.char)
 	case '"':
-		tok.Type = token.STRING
-		tok.Literal = l.readString()
+		s := l.readString()
+		if strings.Contains(s, "/") {
+			tok.Type = token.CIDR
+			s = "\"" + s // CIDR format is "35.0.0.0"/24 which we have to wrap by ".
+		} else {
+			tok.Type = token.STRING
+		}
+		tok.Literal = s
 	case '|':
 		// it will be always &&
 		if l.peekChar() == '|' {

@@ -15,7 +15,7 @@ func TestNextToken(t *testing.T) {
 		}
 	}{
 		{
-			`=~,; call == && || 10 "keke" false !`,
+			`=~,; call == && || 10 "keke" false ! "35.0.0.0"/23;`,
 			[]struct {
 				expectedType    token.Type
 				expectedLiteral string
@@ -32,6 +32,7 @@ func TestNextToken(t *testing.T) {
 				{token.STRING, "keke"},
 				{token.FALSE, "false"},
 				{token.BANG, "!"},
+				{token.CIDR, "\"35.0.0.0\"/23"},
 			},
 		},
 		{
@@ -87,11 +88,11 @@ func TestNextToken(t *testing.T) {
 		for j, expectedToken := range tc.expectedTokens {
 			tok := l.NextToken()
 			if tok.Type != expectedToken.expectedType {
-				t.Fatalf("failed[testCase:%d:%d] - wrong tokenType, want: %s, got: %s", i+1, j+1, expectedToken.expectedType, tok.Type)
+				t.Fatalf("failed[testCase:%d,%d] - wrong tokenType, want: %s, got: %s", i+1, j+1, expectedToken.expectedType, tok.Type)
 			}
 
 			if tok.Literal != expectedToken.expectedLiteral {
-				t.Fatalf("failed[testCase:%d:%d] - wrong literal, want%s, got:%s", i+1, j+1, expectedToken.expectedLiteral, tok.Literal)
+				t.Fatalf("failed[testCase:%d,%d] - wrong literal, want: %s, got: %s", i+1, j+1, expectedToken.expectedLiteral, tok.Literal)
 			}
 		}
 	}
