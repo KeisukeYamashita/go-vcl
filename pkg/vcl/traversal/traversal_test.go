@@ -36,13 +36,13 @@ func TestContents(t *testing.T) {
 		p := parser.NewParser(l)
 
 		program := p.ParseProgram()
-		contents := Contents(program)
-		if len(contents.Body.Attributes) != tc.expectedAttrCount {
-			t.Fatalf("contents.Attributes length failed[testcase:%d], got:%d, want:%d", n, len(contents.Body.Attributes), tc.expectedAttrCount)
+		content := Content(program)
+		if len(content.Attributes) != tc.expectedAttrCount {
+			t.Fatalf("contents.Attributes length failed[testcase:%d], got:%d, want:%d", n, len(content.Attributes), tc.expectedAttrCount)
 		}
 
-		if len(contents.Body.Blocks) != tc.expectedBlockCount {
-			t.Fatalf("contents.Blocks length failed[testcase:%d], got:%d, want:%d", n, len(contents.Body.Blocks), tc.expectedBlockCount)
+		if len(content.Blocks) != tc.expectedBlockCount {
+			t.Fatalf("contents.Blocks length failed[testcase:%d], got:%d, want:%d", n, len(content.Blocks), tc.expectedBlockCount)
 		}
 	}
 }
@@ -74,16 +74,14 @@ func TestConvertBody(t *testing.T) {
 	for n, tc := range testCases {
 		l := lexer.NewLexer(tc.input)
 		p := parser.NewParser(l)
-
 		program := p.ParseProgram()
-
-		body := convertBody(program.Statements)
-		if len(body.Attributes) != tc.expectedAttrCount {
-			t.Fatalf("contents.Attributes length failed[testcase:%d], got:%d, want:%d", n, len(body.Attributes), tc.expectedAttrCount)
+		content := convertBody(program.Statements)
+		if len(content.Attributes) != tc.expectedAttrCount {
+			t.Fatalf("contents.Attributes length failed[testcase:%d], got:%d, want:%d", n, len(content.Attributes), tc.expectedAttrCount)
 		}
 
-		if len(body.Blocks) != tc.expectedBlockCount {
-			t.Fatalf("contents.Blocks length failed[testcase:%d], got:%d, want:%d", n, len(body.Blocks), tc.expectedBlockCount)
+		if len(content.Blocks) != tc.expectedBlockCount {
+			t.Fatalf("contents.Blocks length failed[testcase:%d], got:%d, want:%d", n, len(content.Blocks), tc.expectedBlockCount)
 		}
 	}
 }

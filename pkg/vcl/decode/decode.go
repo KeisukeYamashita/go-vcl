@@ -1,6 +1,7 @@
 package decoder
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -8,10 +9,11 @@ import (
 
 	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/ast"
 	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/schema"
+	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/traversal"
 )
 
 // Decode is a function for mapping the program of parser output to your custom struct.
-func Decode(program ast.Program, val interface{}) error {
+func Decode(program *ast.Program, val interface{}) []error {
 	rv := reflect.ValueOf(val)
 	if rv.Kind() != reflect.Ptr {
 		panic(fmt.Sprintf("target value must be a pointer, not: %s", rv.Type().String()))
@@ -20,7 +22,7 @@ func Decode(program ast.Program, val interface{}) error {
 	return decodeProgramToValue(program, rv.Elem())
 }
 
-func decodeProgramToValue(program ast.Program, val reflect.Value) error {
+func decodeProgramToValue(program *ast.Program, val reflect.Value) []error {
 	et := val.Type()
 	switch et.Kind() {
 	case reflect.Struct:
@@ -31,9 +33,94 @@ func decodeProgramToValue(program ast.Program, val reflect.Value) error {
 	}
 }
 
-func decodeProgramToStruct(program ast.Program, val reflect.Value) error {
-	schema := impliedBodySchema(val.Interface())
-	_ = schema
+var attrType = reflect.TypeOf((*schema.Attribute)(nil))
+
+func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
+	errs := []error{}
+	content := traversal.Content(program)
+
+	tags := getFieldTags(val.Type())
+
+	for name, fieldIdx := range tags.Attributes {
+		attr := content.Attributes[name]
+		field := val.Type().Field(fieldIdx)
+		fieldTy := field.Type
+		fieldV := val.Field(fieldIdx)
+
+		if attr == nil {
+			fieldV.Set(reflect.Zero(field.Type))
+			continue
+		}
+
+		switch {
+		case attrType.AssignableTo(field.Type):
+			fieldV.Set(reflect.ValueOf(attr))
+		case fieldTy.AssignableTo(reflect.ValueOf(attr.Value).Type()):
+			fieldV.Set(reflect.ValueOf(attr.Value))
+		}
+	}
+
+	blocksByType := content.Blocks.ByType()
+
+	for typeName, fieldIdx := range tags.Blocks {
+		blocks := blocksByType[typeName]
+		field := val.Type().Field(fieldIdx)
+
+		ty := field.Type
+
+		var isSlice bool
+		var isPtr bool
+		if ty.Kind() == reflect.Slice {
+			isSlice = true
+			ty = ty.Elem()
+		}
+
+		if ty.Kind() == reflect.Ptr {
+			isPtr = true
+			ty = ty.Elem()
+		}
+
+		if len(blocks) > 1 && !isSlice {
+			errs = append(errs, errors.New("more than one block but the field type is not slice"))
+		}
+
+		if len(blocks) == 0 {
+			if isSlice || isPtr {
+				val.Field(fieldIdx).Set(reflect.Zero(field.Type))
+			} else {
+				errs = append(errs, errors.New("no block"))
+			}
+		}
+
+		switch {
+		case isSlice:
+			elemType := ty
+			if isPtr {
+				elemType = reflect.PtrTo(ty)
+			}
+
+			sli := reflect.MakeSlice(reflect.SliceOf(elemType), len(blocks), len(blocks))
+
+			for i := range blocks {
+				if isPtr {
+					v := reflect.New(ty)
+					sli.Index(i).Set(v)
+				} else {
+					errs = append(errs, errors.New("block is not a pointer"))
+				}
+			}
+
+			val.Field(fieldIdx).Set(sli)
+		default:
+			if isPtr {
+				v := reflect.New(ty)
+				val.Field(fieldIdx).Set(v)
+			} else {
+				errs = append(errs, errors.New("block is not a pointer"))
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -110,7 +197,7 @@ func impliedBodySchema(val interface{}) *schema.File {
 	}
 
 	file := &schema.File{
-		Body: &schema.Body{
+		Body: &schema.BodySchema{
 			Attributes: attrSchemas,
 			Blocks:     blockSchemas,
 		},

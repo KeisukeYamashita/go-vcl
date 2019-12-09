@@ -6,49 +6,60 @@ import (
 )
 
 // Contents retrives from ast.Program
-func Contents(prog *ast.Program) *schema.File {
+func Content(prog *ast.Program) *schema.BodyContent {
 	b := convertBody(prog.Statements)
-	return &schema.File{
-		Body: b,
-	}
+	return b
 }
 
 // Contents will ast.Program to schema
-func convertBody(stmts []ast.Statement) *schema.Body {
-	var attrs []schema.AttributeSchema
-	var blocks []schema.BlockHeaderSchema
+func convertBody(stmts []ast.Statement) *schema.BodyContent {
+	attrs := make(map[string]*schema.Attribute)
+	var blocks schema.Blocks
 
 	for _, stmt := range stmts {
 		switch v := stmt.(type) {
 		case *ast.AssignStatement:
-			attrs = append(attrs, schema.AttributeSchema{
-				Name: v.Name.Value,
-			})
+			var value interface{}
+
+			switch lit := v.Value.(type) {
+			case *ast.StringLiteral:
+				value = lit.Value
+			case *ast.CIDRLiteral:
+				value = lit.Value
+			case *ast.BooleanLiteral:
+				value = lit.Value
+			case *ast.IntegerLiteral:
+				value = lit.Value
+			default:
+				panic("cannot pass invalid argument")
+			}
+
+			attrs[v.Name.Value] = &schema.Attribute{
+				Name:  v.Name.Value,
+				Value: value,
+			}
 		case *ast.ExpressionStatement:
 			switch expr := v.Expression.(type) {
 			case *ast.BlockExpression:
 				body := convertBody(expr.Blocks.Statements)
-				block := schema.BlockHeaderSchema{
+				block := &schema.Block{
 					Body: body,
 				}
 
-				var blockType string
-				var labels []string
 				if len(expr.Labels) > 0 {
-					blockType = expr.Labels[0]
+					block.Type = expr.Labels[0]
 					if len(expr.Labels) > 1 {
-						labels = expr.Labels[1:]
+						labels := expr.Labels[1:]
+						block.Labels = labels
 					}
 				}
 
-				block.Type = blockType
-				block.LabelNames = labels
 				blocks = append(blocks, block)
 			}
 		}
 	}
 
-	body := &schema.Body{
+	body := &schema.BodyContent{
 		Attributes: attrs,
 		Blocks:     blocks,
 	}
