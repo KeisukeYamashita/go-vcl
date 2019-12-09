@@ -37,7 +37,7 @@ func decodeProgramToStruct(program ast.Program, val reflect.Value) error {
 }
 
 // imipliedBodySchema will retrieves the root body schema from the given val.
-// For Varnish Fastly usecases, there wil be only blocks in the root. But as a configuration language,
+// For Varnish & Fastly usecases, there will be only blocks in the root. But as a configuration language,
 // the root schema can contain attribute as HCL. Therefore, I left the attributes slice for that.
 func impliedBodySchema(val interface{}) *schema.Schema {
 	ty := reflect.TypeOf(val)
@@ -62,11 +62,16 @@ func impliedBodySchema(val interface{}) *schema.Schema {
 	for _, n := range attrNames {
 		idx := tags.Attributes[n]
 		field := ty.Field(idx)
-		// Todo(KeisukeYamashita): Type check needed
-		_ = field
+		var required bool
+
+		switch {
+		case field.Type.Kind() != reflect.Ptr:
+			required = true
+		}
 
 		attrSchemas = append(attrSchemas, schema.AttributeSchema{
-			Name: n,
+			Name:     n,
+			Required: required,
 		})
 	}
 
@@ -74,6 +79,7 @@ func impliedBodySchema(val interface{}) *schema.Schema {
 	for n := range tags.Blocks {
 		blockNames = append(blockNames, n)
 	}
+
 	sort.Strings(blockNames)
 	for _, n := range blockNames {
 		idx := tags.Blocks[n]
@@ -123,7 +129,7 @@ type labelField struct {
 	Name       string
 }
 
-// getFieldTags retrieves the "vcl" tags of the given struct.
+// getFieldTags retrieves the "vcl" tags of the given struct type.
 func getFieldTags(ty reflect.Type) *fieldTags {
 	ret := &fieldTags{
 		Attributes: map[string]int{},

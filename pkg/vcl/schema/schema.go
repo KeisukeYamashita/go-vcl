@@ -8,7 +8,8 @@ type Schema struct {
 
 // AttributeSchema ...
 type AttributeSchema struct {
-	Name string
+	Name     string
+	Required bool
 }
 
 // BlockHeaderSchema ...
