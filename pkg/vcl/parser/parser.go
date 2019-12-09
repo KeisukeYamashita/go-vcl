@@ -197,12 +197,13 @@ func (p *Parser) parseBlockExpression() ast.Expression {
 		Token: p.curToken,
 	}
 
-	p.nextToken()
-	var labels []string
-	for p.peekTokenIs(token.IDENT) {
+	labels := []string{}
+	for !p.peekTokenIs(token.LBRACE) {
 		p.nextToken()
 		labels = append(labels, p.curToken.Literal)
 	}
+
+	expr.Labels = labels
 
 	if !p.peekTokenIs(token.LBRACE) {
 		return nil

@@ -25,6 +25,7 @@ func decodeProgramToValue(program ast.Program, val reflect.Value) error {
 	switch et.Kind() {
 	case reflect.Struct:
 		return decodeProgramToStruct(program, val)
+	// TODO(KeisukeYamashita): implement map[string]interface{}
 	default:
 		panic(fmt.Sprintf("target value must be a pointer to struct, not: %s", et.String()))
 	}
@@ -39,7 +40,7 @@ func decodeProgramToStruct(program ast.Program, val reflect.Value) error {
 // imipliedBodySchema will retrieves the root body schema from the given val.
 // For Varnish & Fastly usecases, there will be only blocks in the root. But as a configuration language,
 // the root schema can contain attribute as HCL. Therefore, I left the attributes slice for that.
-func impliedBodySchema(val interface{}) *schema.Schema {
+func impliedBodySchema(val interface{}) *schema.File {
 	ty := reflect.TypeOf(val)
 	if ty.Kind() == reflect.Ptr {
 		ty = ty.Elem()
@@ -108,12 +109,14 @@ func impliedBodySchema(val interface{}) *schema.Schema {
 		})
 	}
 
-	schema := &schema.Schema{
-		Attributes: attrSchemas,
-		Blocks:     blockSchemas,
+	file := &schema.File{
+		Body: &schema.Body{
+			Attributes: attrSchemas,
+			Blocks:     blockSchemas,
+		},
 	}
 
-	return schema
+	return file
 }
 
 // fieldTags is a struct that represents info about the field of the passed val.

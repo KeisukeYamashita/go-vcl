@@ -56,17 +56,17 @@ func TestImpliedBodySchema(t *testing.T) {
 	}
 
 	for n, tc := range testCases {
-		schema := impliedBodySchema(tc.input)
-		if len(schema.Attributes) != 1 {
-			t.Fatalf("Attribute length wrong[testCase:%d], got:%d, want:%d", n, len(schema.Attributes), 1)
+		file := impliedBodySchema(tc.input)
+		if len(file.Body.Attributes) != 1 {
+			t.Fatalf("Attribute length wrong[testCase:%d], got:%d, want:%d", n, len(file.Body.Attributes), 1)
 		}
 
-		if len(schema.Blocks) != 1 {
-			t.Fatalf("Block length wrong[testCase:%d], got:%d, want:%d", n, len(schema.Blocks), 1)
+		if len(file.Body.Blocks) != 1 {
+			t.Fatalf("Block length wrong[testCase:%d], got:%d, want:%d", n, len(file.Body.Blocks), 1)
 		}
 
-		if len(schema.Blocks[0].LabelNames) != 1 {
-			t.Fatalf("Block label are not expected[testCase:%d], got:%d, want:%d", n, len(schema.Blocks[0].LabelNames), 1)
+		if len(file.Body.Blocks[0].LabelNames) != 1 {
+			t.Fatalf("Block label are not expected[testCase:%d], got:%d, want:%d", n, len(file.Body.Blocks[0].LabelNames), 1)
 		}
 	}
 }

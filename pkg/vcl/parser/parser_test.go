@@ -509,8 +509,8 @@ func TestBlockStatement(t *testing.T) {
 			t.Fatalf("program.Statement[0] is not ast.BlockExpression[testCase:%d], got:%T", n, stmt.Expression)
 		}
 
-		if len(expr.Labels) == len(tc.expectedLabels) {
-			t.Fatalf("blockExpression labels length does not match, got:%d,  want:%d", len(expr.Labels), len(tc.expectedLabels))
+		if len(expr.Labels) != len(tc.expectedLabels) {
+			t.Fatalf("blockExpression labels length does not match[testCase:%d], got:%d, want:%d", n, len(expr.Labels), len(tc.expectedLabels))
 		}
 
 		block, ok := expr.Blocks.Statements[0].(*ast.ExpressionStatement)

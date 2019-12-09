@@ -15,7 +15,6 @@ type Root struct {
 
 type ACL struct {
     Type string `vcl:"type,label`
-    Stmt []vcl.Statements `vcl:"stmt"`
 }    
 ```
 
@@ -24,7 +23,13 @@ Then decode your
 ```golang
 var r Root
 _ = vcl.Decode(b, &r)
+fmt.Println(r.Type)
 fmt.Println(r.ACLs)
+```
+
+```console
+$ go run main.go
+=> "local"
 ```
 
 ### Encode

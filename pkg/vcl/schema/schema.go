@@ -1,7 +1,12 @@
 package schema
 
-// Schema ...
-type Schema struct {
+// File is the root of the data structure
+type File struct {
+	Body *Body
+}
+
+// Body contains multiple attributes and blocks
+type Body struct {
 	Attributes []AttributeSchema
 	Blocks     []BlockHeaderSchema
 }
@@ -16,4 +21,5 @@ type AttributeSchema struct {
 type BlockHeaderSchema struct {
 	Type       string
 	LabelNames []string
+	Body       *Body
 }
