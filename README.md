@@ -33,8 +33,8 @@ type Root struct {
 }
 
 type ACL struct {
-    Type      string `vcl:"type,label`
-    Endpoints string `vcl:"endpoints,flat"`
+    Type      string   `vcl:"type,label`
+    Endpoints []string `vcl:"endpoints,flat"`
 }  
 ```
 
@@ -43,13 +43,13 @@ Then decode your like following.
 ```golang
 var r Root
 err := vcl.Decode(b, &r)
-fmt.Println(r.Type)
-fmt.Println(r.ACLs)
+fmt.Println(r.ACLs[0].Type)
+fmt.Println(r.ACLs[0].Endpoints)
 ```
 
 ```console
 $ go run main.go
-=> "local"
+=> "purge_ip"
 => []string{"localhost","127.0.0.1"}
 ```
 
