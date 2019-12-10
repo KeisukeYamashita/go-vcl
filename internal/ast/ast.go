@@ -99,12 +99,23 @@ func (as *AssignStatement) TokenLiteral() string {
 
 // ReturnStatement holds the Name for the Identifier and its value
 type ReturnStatement struct {
-	Token       token.Token // token.ASSIGN
+	Token       token.Token // token.RETURN
 	ReturnValue Expression
 }
 
 func (as *ReturnStatement) statementNode() {}
 func (as *ReturnStatement) TokenLiteral() string {
+	return as.Token.Literal
+}
+
+// CallStatement holds the Name for the Identifier and its value
+type CallStatement struct {
+	Token     token.Token // token.ASSIGN
+	CallValue Expression
+}
+
+func (as *CallStatement) statementNode() {}
+func (as *CallStatement) TokenLiteral() string {
 	return as.Token.Literal
 }
 

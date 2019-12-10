@@ -169,7 +169,11 @@ func decodeBlockToStruct(block *schema.Block, val reflect.Value) {
 	content := traversal.BodyContent(block.Body)
 
 	for i, n := range tags.Labels {
-		label := block.Labels[i]
+		var label string
+		var ok bool
+		if label, ok = block.Labels[i]; !ok {
+			continue
+		}
 		fieldV := val.Field(n.FieldIndex)
 		fieldV.Set(reflect.ValueOf(label))
 	}

@@ -199,12 +199,16 @@ func (p *Parser) parseBlockExpression() ast.Expression {
 	}
 
 	labels := []string{}
-	for !p.peekTokenIs(token.LBRACE) {
+	for !p.peekTokenIs(token.LBRACE) && !p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 		labels = append(labels, p.curToken.Literal)
 	}
 
 	expr.Labels = labels
+
+	if p.peekTokenIs(token.SEMICOLON) {
+		return expr
+	}
 
 	if !p.peekTokenIs(token.LBRACE) {
 		return nil
@@ -278,6 +282,8 @@ func (p *Parser) parseStatement() ast.Statement {
 		}
 	case token.RETURN:
 		return p.parseReturnStatement()
+	case token.CALL:
+		return p.parseCallStatement()
 	default:
 		return p.parseExpressionStatement()
 	}
@@ -326,6 +332,22 @@ func (p *Parser) parseReturnStatement() ast.Statement {
 		p.peekError(token.ASSIGN)
 		return nil
 	}
+
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseCallStatement() ast.Statement {
+	stmt := &ast.CallStatement{
+		Token: p.curToken,
+	}
+
+	p.nextToken()
+
+	stmt.CallValue = p.parseExpression(LOWEST)
 
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()

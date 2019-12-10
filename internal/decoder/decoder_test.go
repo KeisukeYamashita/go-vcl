@@ -68,6 +68,7 @@ func TestDecodeProgramToStruct_Attribute(t *testing.T) {
 func TestDecodeProgramToStruct_Block(t *testing.T) {
 	type ACL struct {
 		Type      string   `vcl:"type,label"`
+		Name      string   `vcl:"name,label"`
 		Endpoints []string `vcl:"endpoints,flat"`
 	}
 
@@ -126,6 +127,13 @@ sub pipe_something {
 `, &Root{}, &Root{ACLs: []*ACL{&ACL{Type: "local", Endpoints: []string{"local", "localhost"}}}, Subs: []*Sub{&Sub{Type: "pipe_something", Endpoints: []string{"inside_sub", "\"34.100.0.0\"/23"}}}},
 		},
 		"with sub block": {
+			`sub pipe_something {
+	.host = "host";
+	.ip = "ip";
+}
+`, &RootSub{}, &RootSub{Subs: []*SubObj{&SubObj{Type: "pipe_something", Host: "host", IP: "ip"}}},
+		},
+		"with multi label": {
 			`sub pipe_something {
 	.host = "host";
 	.ip = "ip";

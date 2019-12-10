@@ -113,6 +113,41 @@ return (cache);
 	}
 }
 
+func TestCallStatement(t *testing.T) {
+	testCases := []struct {
+		input string
+
+		expectedIdentifier string
+	}{
+		{`call pipe_if_local;`, "pipe_if_local"},
+	}
+
+	for n, tc := range testCases {
+		l := lexer.NewLexer(tc.input)
+		p := NewParser(l)
+
+		program := p.ParseProgram()
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements wrong number returned testCase[%d], got:%d, want%d", n, len(program.Statements), 3)
+		}
+
+		for _, stmt := range program.Statements {
+			callStmt, ok := stmt.(*ast.CallStatement)
+			if !ok {
+				t.Fatalf("stmt not *ast.CallStatement testCase[%d], got:%T", n, stmt)
+			}
+
+			if callStmt.TokenLiteral() != "call" {
+				t.Fatalf("returnStmt.TokenLiteral not 'return' testCase[%d], got:%q", n, callStmt.TokenLiteral())
+			}
+
+			if callStmt.CallValue.(*ast.Identifier).Value != tc.expectedIdentifier {
+				t.Fatalf("callStmt callValue wrong in testCase[%d], got:%s, want:%s", n, callStmt.CallValue, tc.expectedIdentifier)
+			}
+		}
+	}
+}
+
 func TestIdentifierExpression(t *testing.T) {
 	input := "keke;"
 
@@ -490,6 +525,7 @@ func TestBlockStatement(t *testing.T) {
 		"with single block acl":  {"acl local { \"localhost\"; }", []string{"local"}, "acl", []string{"localhost"}},
 		"with two statement acl": {"acl local { \"local\"; \"localhost\"}", []string{"local"}, "acl", []string{"local", "localhost"}},
 		"with backend statement": {"backend server1 { .host = \"localhost\"}", []string{"server"}, "backend", []string{}},
+		"with none backend":      {"backend default none;", []string{"default", "none"}, "backend", []string{}},
 	}
 
 	for n, tc := range testCases {
