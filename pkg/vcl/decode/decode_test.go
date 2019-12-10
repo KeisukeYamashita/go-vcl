@@ -32,7 +32,7 @@ func TestDecode(t *testing.T) {
 	}
 }
 
-func TestDecodeProgramToStruct(t *testing.T) {
+func TestDecodeProgramToStruct_Attribute(t *testing.T) {
 	type Root struct {
 		X   int64  `vcl:"x"`
 		API string `vcl:"api"`
@@ -45,6 +45,44 @@ func TestDecodeProgramToStruct(t *testing.T) {
 	}{
 		{`x = 1`, &Root{}, &Root{X: 1}},
 		{`api = "localhost"`, &Root{}, &Root{API: "localhost"}},
+	}
+
+	for n, tc := range testCases {
+		l := lexer.NewLexer(tc.input)
+		p := parser.NewParser(l)
+		program := p.ParseProgram()
+		root := tc.val
+		val := reflect.ValueOf(root).Elem()
+		errs := decodeProgramToStruct(program, val)
+
+		if len(errs) > 0 {
+			t.Fatalf("decodeProgramToStruct has errors[testCase:%d], err:%v", n, errs)
+		}
+	}
+}
+
+func TestDecodeProgramToStruct_Block(t *testing.T) {
+	type ACL struct {
+		Type     string `vcl:"type,label"`
+		Endpoint string `vcl:"endpoint"`
+	}
+
+	type Root struct {
+		ACLs []*ACL `vcl:"acl,block"`
+	}
+
+	testCases := []struct {
+		input    string
+		val      interface{}
+		expected interface{}
+	}{
+		{`acl local {
+    "localhost"
+}
+
+acl remote {
+	"remote"
+}`, &Root{}, &Root{ACLs: []*ACL{&ACL{Type: "local"}, &ACL{Type: "remote"}}}},
 	}
 
 	for n, tc := range testCases {

@@ -46,12 +46,9 @@ func convertBody(stmts []ast.Statement) *schema.BodyContent {
 					Body: body,
 				}
 
+				block.Type = expr.TokenLiteral()
 				if len(expr.Labels) > 0 {
-					block.Type = expr.Labels[0]
-					if len(expr.Labels) > 1 {
-						labels := expr.Labels[1:]
-						block.Labels = labels
-					}
+					block.Labels = expr.Labels
 				}
 
 				blocks = append(blocks, block)
