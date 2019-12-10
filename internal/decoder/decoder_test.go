@@ -111,8 +111,9 @@ acl remote {
 
 sub pipe_something {
 	"inside_sub";
+	"34.100.0.0"/23;
 }
-`, &Root{}, &Root{ACLs: []*ACL{&ACL{Type: "local", Endpoints: []string{"local", "localhost"}}}, Subs: []*Sub{&Sub{Type: "pipe_something", Endpoints: []string{"inside_sub"}}}},
+`, &Root{}, &Root{ACLs: []*ACL{&ACL{Type: "local", Endpoints: []string{"local", "localhost"}}}, Subs: []*Sub{&Sub{Type: "pipe_something", Endpoints: []string{"inside_sub", "\"34.100.0.0\"/23"}}}},
 		},
 	}
 

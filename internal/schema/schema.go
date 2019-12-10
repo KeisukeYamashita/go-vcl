@@ -15,7 +15,7 @@ type Attributes map[string]*Attribute
 type Blocks []*Block
 
 // Flats ...
-type Flats []string
+type Flats []interface{}
 
 // Block ...
 type Block struct {

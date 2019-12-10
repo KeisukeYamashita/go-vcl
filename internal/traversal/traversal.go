@@ -20,7 +20,7 @@ func BodyContent(body schema.Body) *schema.BodyContent {
 func convertBody(stmts []ast.Statement) *schema.BodyContent {
 	attrs := make(map[string]*schema.Attribute)
 	var blocks schema.Blocks
-	flats := []string{}
+	flats := []interface{}{}
 
 	for _, stmt := range stmts {
 		switch v := stmt.(type) {
@@ -59,6 +59,12 @@ func convertBody(stmts []ast.Statement) *schema.BodyContent {
 
 				blocks = append(blocks, block)
 			case *ast.StringLiteral:
+				flats = append(flats, expr.Value)
+			case *ast.CIDRLiteral:
+				flats = append(flats, expr.Value)
+			case *ast.BooleanLiteral:
+				flats = append(flats, expr.Value)
+			case *ast.IntegerLiteral:
 				flats = append(flats, expr.Value)
 			}
 		}
