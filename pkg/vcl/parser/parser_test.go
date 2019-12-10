@@ -484,10 +484,11 @@ func TestBlockStatement(t *testing.T) {
 		input           string
 		expectedLabels  []string
 		blockType       string
-		blockIdentifier string
+		blockIdentifier []string
 	}{
-		{"sub pipe_if_local { x }", []string{"pipe_if_local"}, "sub", "x"},
-		{"acl local { \"localhost\" }", []string{"local"}, "acl", "localhost"},
+		{"sub pipe_if_local { x }", []string{"pipe_if_local"}, "sub", []string{"x"}},
+		{"acl local { \"localhost\"; }", []string{"local"}, "acl", []string{"localhost"}},
+		{"acl local { \"local\"; \"localhost\"}", []string{"local"}, "acl", []string{"local", "localhost"}},
 	}
 
 	for n, tc := range testCases {
@@ -513,19 +514,21 @@ func TestBlockStatement(t *testing.T) {
 			t.Fatalf("blockExpression labels length does not match[testCase:%d], got:%d, want:%d", n, len(expr.Labels), len(tc.expectedLabels))
 		}
 
-		block, ok := expr.Blocks.Statements[0].(*ast.ExpressionStatement)
-		if !ok {
-			t.Fatalf("statement[0] in if consequence is not ast.ExpressionStatement[testCase:%d], got:%T", n, expr.Blocks.Statements[0])
-		}
-
-		switch block.Expression.(type) {
-		case *ast.Identifier:
-			if !testIdentifier(t, block.Expression, tc.blockIdentifier) {
-				t.Fatalf("blockExpression failed to test identifier[testCase:%d]", n)
+		for idx, identifier := range tc.blockIdentifier {
+			block, ok := expr.Blocks.Statements[idx].(*ast.ExpressionStatement)
+			if !ok {
+				t.Fatalf("statement[%d] in if consequence is not ast.ExpressionStatement[testCase:%d], got:%T", idx, n, expr.Blocks.Statements[0])
 			}
-		case *ast.StringLiteral:
-			if !testStringLiteral(t, block.Expression, tc.blockIdentifier) {
-				t.Fatalf("blockExpression failed to test stringLiteral[testCase:%d]", n)
+
+			switch block.Expression.(type) {
+			case *ast.Identifier:
+				if !testIdentifier(t, block.Expression, identifier) {
+					t.Fatalf("blockExpression failed to test identifier[testCase:%d]", n)
+				}
+			case *ast.StringLiteral:
+				if !testStringLiteral(t, block.Expression, identifier) {
+					t.Fatalf("blockExpression failed to test stringLiteral[testCase:%d]", n)
+				}
 			}
 		}
 	}

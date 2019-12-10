@@ -40,6 +40,94 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 	content := traversal.Content(program)
 
 	tags := getFieldTags(val.Type())
+	for name, fieldIdx := range tags.Attributes {
+		attr := content.Attributes[name]
+		field := val.Type().Field(fieldIdx)
+		fieldTy := field.Type
+		fieldV := val.Field(fieldIdx)
+
+		if attr == nil {
+			fieldV.Set(reflect.Zero(field.Type))
+			continue
+		}
+
+		switch {
+		case attrType.AssignableTo(field.Type):
+			fieldV.Set(reflect.ValueOf(attr))
+		case fieldTy.AssignableTo(reflect.ValueOf(attr.Value).Type()):
+			fieldV.Set(reflect.ValueOf(attr.Value))
+		}
+	}
+
+	blocksByType := content.Blocks.ByType()
+
+	for typeName, fieldIdx := range tags.Blocks {
+		blocks := blocksByType[typeName]
+		field := val.Type().Field(fieldIdx)
+
+		ty := field.Type
+
+		var isSlice bool
+		var isPtr bool
+		if ty.Kind() == reflect.Slice {
+			isSlice = true
+			ty = ty.Elem()
+		}
+
+		if ty.Kind() == reflect.Ptr {
+			isPtr = true
+			ty = ty.Elem()
+		}
+
+		if len(blocks) > 1 && !isSlice {
+			errs = append(errs, errors.New("more than one block but the field type is not slice"))
+		}
+
+		if len(blocks) == 0 {
+			if isSlice || isPtr {
+				val.Field(fieldIdx).Set(reflect.Zero(field.Type))
+			} else {
+				errs = append(errs, errors.New("no block"))
+			}
+		}
+
+		switch {
+		case isSlice:
+			elemType := ty
+			if isPtr {
+				elemType = reflect.PtrTo(ty)
+			}
+
+			sli := reflect.MakeSlice(reflect.SliceOf(elemType), len(blocks), len(blocks))
+
+			for i, block := range blocks {
+				if isPtr {
+					v := reflect.New(ty)
+					decodeBlockToStruct(block, v.Elem())
+					sli.Index(i).Set(v)
+				} else {
+					errs = append(errs, errors.New("block is not a pointer"))
+				}
+			}
+
+			val.Field(fieldIdx).Set(sli)
+		default:
+			if isPtr {
+				v := reflect.New(ty)
+				val.Field(fieldIdx).Set(v)
+			} else {
+				errs = append(errs, errors.New("block is not a pointer"))
+			}
+		}
+	}
+
+	return nil
+}
+
+func decodeBlockToStruct(block *schema.Block, val reflect.Value) {
+	var errs []error
+	tags := getFieldTags(val.Type())
+	content := traversal.BodyContent(block.Body)
 
 	for name, fieldIdx := range tags.Attributes {
 		attr := content.Attributes[name]
@@ -101,9 +189,10 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 
 			sli := reflect.MakeSlice(reflect.SliceOf(elemType), len(blocks), len(blocks))
 
-			for i := range blocks {
+			for i, block := range blocks {
 				if isPtr {
 					v := reflect.New(ty)
+					decodeBlockToStruct(block, v.Elem())
 					sli.Index(i).Set(v)
 				} else {
 					errs = append(errs, errors.New("block is not a pointer"))
@@ -121,7 +210,7 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 		}
 	}
 
-	return nil
+	return
 }
 
 // imipliedBodySchema will retrieves the root body schema from the given val.
@@ -148,8 +237,8 @@ func impliedBodySchema(val interface{}) *schema.File {
 
 	sort.Strings(attrNames)
 	for _, n := range attrNames {
-		idx := tags.Attributes[n]
-		field := ty.Field(idx)
+		attr := tags.Attributes[n]
+		field := ty.Field(attr)
 		var required bool
 
 		switch {
@@ -211,11 +300,16 @@ type fieldTags struct {
 	Attributes map[string]int
 	Blocks     map[string]int
 	Labels     []labelField
+	Flats      []flatField
 }
 
 // labelField is a struct that represents info about the struct tags of "vcl".
 type labelField struct {
 	FieldIndex int
+	Name       string
+}
+type flatField struct {
+	FieldIndix int
 	Name       string
 }
 
@@ -225,6 +319,7 @@ func getFieldTags(ty reflect.Type) *fieldTags {
 		Attributes: map[string]int{},
 		Blocks:     map[string]int{},
 		Labels:     []labelField{},
+		Flats:      []flatField{},
 	}
 
 	ct := ty.NumField()
@@ -253,6 +348,11 @@ func getFieldTags(ty reflect.Type) *fieldTags {
 		case "label":
 			ret.Labels = append(ret.Labels, labelField{
 				FieldIndex: i,
+				Name:       name,
+			})
+		case "flat":
+			ret.Flats = append(ret.Flats, flatField{
+				FieldIndix: i,
 				Name:       name,
 			})
 		default:

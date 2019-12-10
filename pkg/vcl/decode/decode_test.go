@@ -58,13 +58,17 @@ func TestDecodeProgramToStruct_Attribute(t *testing.T) {
 		if len(errs) > 0 {
 			t.Fatalf("decodeProgramToStruct has errors[testCase:%d], err:%v", n, errs)
 		}
+
+		if !reflect.DeepEqual(tc.val, tc.expected) {
+			t.Fatalf("decodeProgramToStruct got wrong result[testCase:%d]", n)
+		}
 	}
 }
 
 func TestDecodeProgramToStruct_Block(t *testing.T) {
 	type ACL struct {
-		Type     string `vcl:"type,label"`
-		Endpoint string `vcl:"endpoint"`
+		Type      string   `vcl:"type,label"`
+		Endpoints []string `vcl:"endpoints,flat"`
 	}
 
 	type Root struct {
@@ -77,11 +81,8 @@ func TestDecodeProgramToStruct_Block(t *testing.T) {
 		expected interface{}
 	}{
 		{`acl local {
-    "localhost"
-}
-
-acl remote {
-	"remote"
+	"local";
+	"localhost";
 }`, &Root{}, &Root{ACLs: []*ACL{&ACL{Type: "local"}, &ACL{Type: "remote"}}}},
 	}
 
@@ -94,9 +95,17 @@ acl remote {
 		errs := decodeProgramToStruct(program, val)
 
 		if len(errs) > 0 {
-			t.Fatalf("decodeProgramToStruct has errors[testCase:%d], err:%v", n, errs)
+			t.Fatalf("decodeProgramToStruct_Block has errors[testCase:%d], err:%v", n, errs)
+		}
+
+		if !reflect.DeepEqual(tc.input, tc.expected) {
+			t.Fatalf("decodeProgramToStruct_Block got wrong result[testCase:%d]", n)
 		}
 	}
+}
+
+func TestBlockToStruct(t *testing.T) {
+
 }
 
 func TestImpliedBodySchema(t *testing.T) {

@@ -5,10 +5,15 @@ import (
 	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/schema"
 )
 
-// Contents retrives from ast.Program
+// Content retrives from ast.Program
 func Content(prog *ast.Program) *schema.BodyContent {
 	b := convertBody(prog.Statements)
 	return b
+}
+
+// BodyContent ...
+func BodyContent(body schema.Body) *schema.BodyContent {
+	return body.(*schema.BodyContent)
 }
 
 // Contents will ast.Program to schema

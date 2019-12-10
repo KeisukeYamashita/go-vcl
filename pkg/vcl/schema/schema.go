@@ -8,9 +8,13 @@ type File struct {
 // Body contains multiple attributes and blocks
 type Body interface{}
 
+// Attributes ...
 type Attributes map[string]*Attribute
+
+// Blocks ...
 type Blocks []*Block
 
+// Block ...
 type Block struct {
 	Type   string
 	Labels []string
@@ -23,11 +27,13 @@ type BodySchema struct {
 	Blocks     []BlockHeaderSchema
 }
 
+// Attribute ...
 type Attribute struct {
 	Name  string
 	Value interface{}
 }
 
+// BodyContent ...
 type BodyContent struct {
 	Attributes Attributes
 	Blocks     Blocks
