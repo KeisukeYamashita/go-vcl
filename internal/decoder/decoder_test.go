@@ -4,10 +4,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/ast"
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/lexer"
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/parser"
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/schema"
+	"github.com/KeisukeYamashita/go-vcl/internal/ast"
+	"github.com/KeisukeYamashita/go-vcl/internal/lexer"
+	"github.com/KeisukeYamashita/go-vcl/internal/parser"
+	"github.com/KeisukeYamashita/go-vcl/internal/schema"
 )
 
 func TestDecode(t *testing.T) {

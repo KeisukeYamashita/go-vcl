@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/ast"
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/lexer"
+	"github.com/KeisukeYamashita/go-vcl/internal/ast"
+	"github.com/KeisukeYamashita/go-vcl/internal/lexer"
 )
 
 func TestAssignStatement(t *testing.T) {

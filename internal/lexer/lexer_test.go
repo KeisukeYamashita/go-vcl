@@ -3,7 +3,7 @@ package lexer
 import (
 	"testing"
 
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/token"
+	"github.com/KeisukeYamashita/go-vcl/internal/token"
 )
 
 func TestNextToken(t *testing.T) {

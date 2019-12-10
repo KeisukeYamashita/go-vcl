@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/ast"
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/lexer"
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/token"
+	"github.com/KeisukeYamashita/go-vcl/internal/ast"
+	"github.com/KeisukeYamashita/go-vcl/internal/lexer"
+	"github.com/KeisukeYamashita/go-vcl/internal/token"
 )
 
 var precedences = map[token.Type]int{

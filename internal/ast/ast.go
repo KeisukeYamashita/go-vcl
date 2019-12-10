@@ -1,6 +1,6 @@
 package ast
 
-import "github.com/KeisukeYamashita/go-vcl/pkg/vcl/token"
+import "github.com/KeisukeYamashita/go-vcl/internal/token"
 
 // Program ...
 type Program struct {

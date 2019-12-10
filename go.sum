@@ -15,6 +15,7 @@ github.com/godoctor/godoctor v0.0.0-20181123222458-69df17f3a6f6 h1:iRn4qXDcqlb2s
 github.com/godoctor/godoctor v0.0.0-20181123222458-69df17f3a6f6/go.mod h1:+tyhT8jBF8E0XvdlSXOSL7Iko7DlNiongHq3q+wcsPs=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
+github.com/instrumenta/conftest v0.15.0 h1:JLsTut9nhsccv7RzzspS/ghU0LAiNUPZYB9lC92V9gQ=
 github.com/k0kubun/pp v3.0.1+incompatible h1:3tqvf7QgUnZ5tXO6pNAZlrvHgl6DvifjDrd9g2S9Z40=
 github.com/k0kubun/pp v3.0.1+incompatible/go.mod h1:GWse8YhT0p8pT4ir3ZgBbfZild3tgzSScAn6HmfYukg=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=

@@ -3,7 +3,7 @@ package lexer
 import (
 	"strings"
 
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/token"
+	"github.com/KeisukeYamashita/go-vcl/internal/token"
 )
 
 // Lexer ...

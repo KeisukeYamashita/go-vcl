@@ -3,8 +3,8 @@ package traversal
 import (
 	"testing"
 
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/lexer"
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/parser"
+	"github.com/KeisukeYamashita/go-vcl/internal/lexer"
+	"github.com/KeisukeYamashita/go-vcl/internal/parser"
 )
 
 func TestContents(t *testing.T) {

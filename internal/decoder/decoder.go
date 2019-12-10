@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/ast"
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/schema"
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/traversal"
+	"github.com/KeisukeYamashita/go-vcl/internal/ast"
+	"github.com/KeisukeYamashita/go-vcl/internal/schema"
+	"github.com/KeisukeYamashita/go-vcl/internal/traversal"
 )
 
 // Decode is a function for mapping the program of parser output to your custom struct.

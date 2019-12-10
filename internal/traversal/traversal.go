@@ -1,8 +1,8 @@
 package traversal
 
 import (
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/ast"
-	"github.com/KeisukeYamashita/go-vcl/pkg/vcl/schema"
+	"github.com/KeisukeYamashita/go-vcl/internal/ast"
+	"github.com/KeisukeYamashita/go-vcl/internal/schema"
 )
 
 // Content retrives from ast.Program
