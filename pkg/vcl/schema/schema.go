@@ -14,6 +14,9 @@ type Attributes map[string]*Attribute
 // Blocks ...
 type Blocks []*Block
 
+// Flats ...
+type Flats []string
+
 // Block ...
 type Block struct {
 	Type   string
@@ -37,6 +40,7 @@ type Attribute struct {
 type BodyContent struct {
 	Attributes Attributes
 	Blocks     Blocks
+	Flats      Flats
 }
 
 // AttributeSchema ...

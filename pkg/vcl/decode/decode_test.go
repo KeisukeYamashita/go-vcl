@@ -83,7 +83,7 @@ func TestDecodeProgramToStruct_Block(t *testing.T) {
 		{`acl local {
 	"local";
 	"localhost";
-}`, &Root{}, &Root{ACLs: []*ACL{&ACL{Type: "local"}, &ACL{Type: "remote"}}}},
+}`, &Root{}, &Root{ACLs: []*ACL{&ACL{Type: "local", Endpoints: []string{"local", "localhost"}}}}},
 	}
 
 	for n, tc := range testCases {
@@ -98,7 +98,7 @@ func TestDecodeProgramToStruct_Block(t *testing.T) {
 			t.Fatalf("decodeProgramToStruct_Block has errors[testCase:%d], err:%v", n, errs)
 		}
 
-		if !reflect.DeepEqual(tc.input, tc.expected) {
+		if !reflect.DeepEqual(tc.val, tc.expected) {
 			t.Fatalf("decodeProgramToStruct_Block got wrong result[testCase:%d]", n)
 		}
 	}

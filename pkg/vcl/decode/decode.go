@@ -64,7 +64,6 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 	for typeName, fieldIdx := range tags.Blocks {
 		blocks := blocksByType[typeName]
 		field := val.Type().Field(fieldIdx)
-
 		ty := field.Type
 
 		var isSlice bool
@@ -121,13 +120,59 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 		}
 	}
 
+	for _, n := range tags.Flats {
+		flats := content.Flats
+		field := val.Type().Field(n.FieldIndex)
+		ty := field.Type
+
+		var isSlice bool
+		var isPtr bool
+		if ty.Kind() == reflect.Slice {
+			isSlice = true
+			ty = ty.Elem()
+		}
+
+		if ty.Kind() == reflect.Ptr {
+			isPtr = true
+			ty = ty.Elem()
+		}
+
+		switch {
+		case isSlice:
+			elemType := ty
+			if isPtr {
+				elemType = reflect.PtrTo(ty)
+			}
+
+			sli := reflect.MakeSlice(reflect.SliceOf(elemType), len(flats), len(flats))
+
+			for i, flat := range flats {
+				if isPtr {
+					v := reflect.New(ty)
+					sli.Index(i).Set(v)
+				} else {
+					sli.Index(i).Set(reflect.ValueOf(flat))
+				}
+			}
+
+			val.Field(n.FieldIndex).Set(sli)
+		}
+	}
+
 	return nil
 }
 
+// decodeBlockToStruct decodes a block into a struct passed by val
 func decodeBlockToStruct(block *schema.Block, val reflect.Value) {
 	var errs []error
 	tags := getFieldTags(val.Type())
 	content := traversal.BodyContent(block.Body)
+
+	for i, n := range tags.Labels {
+		label := block.Labels[i]
+		fieldV := val.Field(n.FieldIndex)
+		fieldV.Set(reflect.ValueOf(label))
+	}
 
 	for name, fieldIdx := range tags.Attributes {
 		attr := content.Attributes[name]
@@ -153,7 +198,6 @@ func decodeBlockToStruct(block *schema.Block, val reflect.Value) {
 	for typeName, fieldIdx := range tags.Blocks {
 		blocks := blocksByType[typeName]
 		field := val.Type().Field(fieldIdx)
-
 		ty := field.Type
 
 		var isSlice bool
@@ -207,6 +251,45 @@ func decodeBlockToStruct(block *schema.Block, val reflect.Value) {
 			} else {
 				errs = append(errs, errors.New("block is not a pointer"))
 			}
+		}
+	}
+
+	for _, n := range tags.Flats {
+		flats := content.Flats
+		field := val.Type().Field(n.FieldIndex)
+		ty := field.Type
+
+		var isSlice bool
+		var isPtr bool
+		if ty.Kind() == reflect.Slice {
+			isSlice = true
+			ty = ty.Elem()
+		}
+
+		if ty.Kind() == reflect.Ptr {
+			isPtr = true
+			ty = ty.Elem()
+		}
+
+		switch {
+		case isSlice:
+			elemType := ty
+			if isPtr {
+				elemType = reflect.PtrTo(ty)
+			}
+
+			sli := reflect.MakeSlice(reflect.SliceOf(elemType), len(flats), len(flats))
+
+			for i, flat := range flats {
+				if isPtr {
+					v := reflect.New(ty)
+					sli.Index(i).Set(v)
+				} else {
+					sli.Index(i).Set(reflect.ValueOf(flat))
+				}
+			}
+
+			val.Field(n.FieldIndex).Set(sli)
 		}
 	}
 
@@ -309,7 +392,7 @@ type labelField struct {
 	Name       string
 }
 type flatField struct {
-	FieldIndix int
+	FieldIndex int
 	Name       string
 }
 
@@ -352,7 +435,7 @@ func getFieldTags(ty reflect.Type) *fieldTags {
 			})
 		case "flat":
 			ret.Flats = append(ret.Flats, flatField{
-				FieldIndix: i,
+				FieldIndex: i,
 				Name:       name,
 			})
 		default:
