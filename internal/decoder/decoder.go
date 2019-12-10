@@ -438,6 +438,8 @@ func getFieldTags(ty reflect.Type) *fieldTags {
 				FieldIndex: i,
 				Name:       name,
 			})
+		case "field":
+			ret.Attributes[fmt.Sprintf(".%s", name)] = i
 		default:
 			panic(fmt.Sprintf("invalid vcl field tag kind %q on %s %q", kind, field.Type.String(), field.Name))
 		}

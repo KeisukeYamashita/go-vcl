@@ -76,6 +76,16 @@ func TestDecodeProgramToStruct_Block(t *testing.T) {
 		Endpoints []string `vcl:"endpoints,flat"` // Memo(KeisukeYamashita): Wont test inside of the block
 	}
 
+	type SubObj struct {
+		Type string `vcl:"type,label"`
+		Host string `vcl:"host,field"`
+		IP   string `vcl:"ip,field"`
+	}
+
+	type RootSub struct {
+		Subs []*SubObj `vcl:"sub,block"`
+	}
+
 	type Root struct {
 		ACLs []*ACL `vcl:"acl,block"`
 		Subs []*Sub `vcl:"sub,block"`
@@ -114,6 +124,13 @@ sub pipe_something {
 	"34.100.0.0"/23;
 }
 `, &Root{}, &Root{ACLs: []*ACL{&ACL{Type: "local", Endpoints: []string{"local", "localhost"}}}, Subs: []*Sub{&Sub{Type: "pipe_something", Endpoints: []string{"inside_sub", "\"34.100.0.0\"/23"}}}},
+		},
+		"with sub block": {
+			`sub pipe_something {
+	.host = "host";
+	.ip = "ip";
+}
+`, &RootSub{}, &RootSub{Subs: []*SubObj{&SubObj{Type: "pipe_something", Host: "host", IP: "ip"}}},
 		},
 	}
 
