@@ -70,6 +70,7 @@ func (p *Parser) init() {
 	p.registerPrefix(token.IF, p.parseIfExpression)
 	p.registerPrefix(token.SUBROUTINE, p.parseBlockExpression)
 	p.registerPrefix(token.ACL, p.parseBlockExpression)
+	p.registerPrefix(token.BACKEND, p.parseBlockExpression)
 
 	p.infixParseFn = make(map[token.Type]infixParseFn)
 	p.registerInfix(token.MATCH, p.parseInfixExpression)

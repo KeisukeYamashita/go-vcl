@@ -480,57 +480,60 @@ func testInfixExpression(t *testing.T, expr ast.Expression, left interface{}, op
 }
 
 func TestBlockStatement(t *testing.T) {
-	testCases := []struct {
+	testCases := map[string]struct {
 		input           string
 		expectedLabels  []string
 		blockType       string
 		blockIdentifier []string
 	}{
-		{"sub pipe_if_local { x }", []string{"pipe_if_local"}, "sub", []string{"x"}},
-		{"acl local { \"localhost\"; }", []string{"local"}, "acl", []string{"localhost"}},
-		{"acl local { \"local\"; \"localhost\"}", []string{"local"}, "acl", []string{"local", "localhost"}},
+		"with single block sub":  {"sub pipe_if_local { x }", []string{"pipe_if_local"}, "sub", []string{"x"}},
+		"with single block acl":  {"acl local { \"localhost\"; }", []string{"local"}, "acl", []string{"localhost"}},
+		"with two statement acl": {"acl local { \"local\"; \"localhost\"}", []string{"local"}, "acl", []string{"local", "localhost"}},
+		"with backend statement": {"backend server1 { .host = \"localhost\"}", []string{"server"}, "backend", []string{}},
 	}
 
 	for n, tc := range testCases {
-		l := lexer.NewLexer(tc.input)
-		p := NewParser(l)
-		program := p.ParseProgram()
+		t.Run(n, func(t *testing.T) {
+			l := lexer.NewLexer(tc.input)
+			p := NewParser(l)
+			program := p.ParseProgram()
 
-		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements wrong length[testCase:%d] got:%d, want:%d", n, len(program.Statements), 1)
-		}
+			if len(program.Statements) != 1 {
+				t.Fatalf("program.Statements wrong length got:%d, want:%d", len(program.Statements), 1)
+			}
 
-		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
-		if !ok {
-			t.Fatalf("program.Statement[0] is not ast.ExpressionStatement[testCase:%d], got:%T", n, program.Statements[0])
-		}
-
-		expr, ok := stmt.Expression.(*ast.BlockExpression)
-		if !ok {
-			t.Fatalf("program.Statement[0] is not ast.BlockExpression[testCase:%d], got:%T", n, stmt.Expression)
-		}
-
-		if len(expr.Labels) != len(tc.expectedLabels) {
-			t.Fatalf("blockExpression labels length does not match[testCase:%d], got:%d, want:%d", n, len(expr.Labels), len(tc.expectedLabels))
-		}
-
-		for idx, identifier := range tc.blockIdentifier {
-			block, ok := expr.Blocks.Statements[idx].(*ast.ExpressionStatement)
+			stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 			if !ok {
-				t.Fatalf("statement[%d] in if consequence is not ast.ExpressionStatement[testCase:%d], got:%T", idx, n, expr.Blocks.Statements[0])
+				t.Fatalf("program.Statement[0] is not ast.ExpressionStatement, got:%T", program.Statements[0])
 			}
 
-			switch block.Expression.(type) {
-			case *ast.Identifier:
-				if !testIdentifier(t, block.Expression, identifier) {
-					t.Fatalf("blockExpression failed to test identifier[testCase:%d]", n)
+			expr, ok := stmt.Expression.(*ast.BlockExpression)
+			if !ok {
+				t.Fatalf("program.Statement[0] is not ast.BlockExpression, got:%T", stmt.Expression)
+			}
+
+			if len(expr.Labels) != len(tc.expectedLabels) {
+				t.Fatalf("blockExpression labels length does not match, got:%d, want:%d", len(expr.Labels), len(tc.expectedLabels))
+			}
+
+			for idx, identifier := range tc.blockIdentifier {
+				block, ok := expr.Blocks.Statements[idx].(*ast.ExpressionStatement)
+				if !ok {
+					t.Fatalf("statement[%d] in if consequence is not ast.ExpressionStatement, got:%T", idx, expr.Blocks.Statements[0])
 				}
-			case *ast.StringLiteral:
-				if !testStringLiteral(t, block.Expression, identifier) {
-					t.Fatalf("blockExpression failed to test stringLiteral[testCase:%d]", n)
+
+				switch block.Expression.(type) {
+				case *ast.Identifier:
+					if !testIdentifier(t, block.Expression, identifier) {
+						t.Fatalf("blockExpression failed to test identifier")
+					}
+				case *ast.StringLiteral:
+					if !testStringLiteral(t, block.Expression, identifier) {
+						t.Fatalf("blockExpression failed to test stringLiteral")
+					}
 				}
 			}
-		}
+		})
 	}
 }
 

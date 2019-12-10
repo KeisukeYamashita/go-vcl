@@ -26,9 +26,9 @@ func TestDecode(t *testing.T) {
 	}
 
 	for n, tc := range testCases {
-		Decode(tc.program, tc.input)
-		_ = n
-		// TODO(KeisukeYamashita): Add test for decode
+		if errs := Decode(tc.program, tc.input); len(errs) > 0 {
+			t.Fatalf("decode failed with error[testcase:%d]", n)
+		}
 	}
 }
 
@@ -71,36 +71,68 @@ func TestDecodeProgramToStruct_Block(t *testing.T) {
 		Endpoints []string `vcl:"endpoints,flat"`
 	}
 
-	type Root struct {
-		ACLs []*ACL `vcl:"acl,block"`
+	type Sub struct {
+		Type      string   `vcl:"type,label"`
+		Endpoints []string `vcl:"endpoints,flat"` // Memo(KeisukeYamashita): Wont test inside of the block
 	}
 
-	testCases := []struct {
+	type Root struct {
+		ACLs []*ACL `vcl:"acl,block"`
+		Subs []*Sub `vcl:"sub,block"`
+	}
+
+	testCases := map[string]struct {
 		input    string
 		val      interface{}
 		expected interface{}
 	}{
-		{`acl local {
+		"with single block": {
+			`acl local {
 	"local";
 	"localhost";
-}`, &Root{}, &Root{ACLs: []*ACL{&ACL{Type: "local", Endpoints: []string{"local", "localhost"}}}}},
+}`, &Root{}, &Root{Subs: []*Sub{}, ACLs: []*ACL{&ACL{Type: "local", Endpoints: []string{"local", "localhost"}}}},
+		},
+		"with two same block": {
+			`acl local {
+	"local";	
+	"localhost";
+}
+
+acl remote {
+	"remote";
+}
+`, &Root{}, &Root{Subs: []*Sub{}, ACLs: []*ACL{&ACL{Type: "local", Endpoints: []string{"local", "localhost"}}, &ACL{Type: "remote", Endpoints: []string{"remote"}}}},
+		},
+		"with two mixed block type": {
+			`acl local {
+	"local";	
+	"localhost";
+}
+
+sub pipe_something {
+	"inside_sub";
+}
+`, &Root{}, &Root{ACLs: []*ACL{&ACL{Type: "local", Endpoints: []string{"local", "localhost"}}}, Subs: []*Sub{&Sub{Type: "pipe_something", Endpoints: []string{"inside_sub"}}}},
+		},
 	}
 
 	for n, tc := range testCases {
-		l := lexer.NewLexer(tc.input)
-		p := parser.NewParser(l)
-		program := p.ParseProgram()
-		root := tc.val
-		val := reflect.ValueOf(root).Elem()
-		errs := decodeProgramToStruct(program, val)
+		t.Run(n, func(t *testing.T) {
+			l := lexer.NewLexer(tc.input)
+			p := parser.NewParser(l)
+			program := p.ParseProgram()
+			root := tc.val
+			val := reflect.ValueOf(root).Elem()
+			errs := decodeProgramToStruct(program, val)
 
-		if len(errs) > 0 {
-			t.Fatalf("decodeProgramToStruct_Block has errors[testCase:%d], err:%v", n, errs)
-		}
+			if len(errs) > 0 {
+				t.Fatalf("decodeProgramToStruct_Block has errorr, err:%v", errs)
+			}
 
-		if !reflect.DeepEqual(tc.val, tc.expected) {
-			t.Fatalf("decodeProgramToStruct_Block got wrong result[testCase:%d]", n)
-		}
+			if !reflect.DeepEqual(tc.val, tc.expected) {
+				t.Fatalf("decodeProgramToStruct_Block got wrong result, got:%#v", tc.val)
+			}
+		})
 	}
 }
 

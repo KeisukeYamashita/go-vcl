@@ -166,7 +166,7 @@ func (l *Lexer) NextToken() token.Token {
 }
 
 func isLetter(char byte) bool {
-	return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || char == '_' || char == '.'
+	return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || char == '_' || char == '.' || '1' <= char && char <= '9'
 }
 
 func isDigit(char byte) bool {

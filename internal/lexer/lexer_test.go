@@ -15,7 +15,7 @@ func TestNextToken(t *testing.T) {
 		}
 	}{
 		{
-			`=~,; call == && || 10 "keke" false ! "35.0.0.0"/23;`,
+			`=~,; call == && || 10 "keke" false ! "35.0.0.0"/23; server1`,
 			[]struct {
 				expectedType    token.Type
 				expectedLiteral string
