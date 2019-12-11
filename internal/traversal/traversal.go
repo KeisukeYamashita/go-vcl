@@ -25,8 +25,8 @@ func convertBody(stmts []ast.Statement) *schema.BodyContent {
 	for _, stmt := range stmts {
 		switch v := stmt.(type) {
 		case *ast.AssignStatement:
+			var isBlock bool
 			var value interface{}
-
 			switch lit := v.Value.(type) {
 			case *ast.StringLiteral:
 				value = lit.Value
@@ -36,13 +36,23 @@ func convertBody(stmts []ast.Statement) *schema.BodyContent {
 				value = lit.Value
 			case *ast.IntegerLiteral:
 				value = lit.Value
+			case *ast.BlockExpression:
+				isBlock = true
+				body := convertBody(lit.Blocks.Statements)
+				block := &schema.Block{
+					Body: body,
+				}
+				block.Type = v.TokenLiteral()
+				blocks = append(blocks, block)
 			default:
 				panic("cannot pass invalid argument which is no a literal")
 			}
 
-			attrs[v.Name.Value] = &schema.Attribute{
-				Name:  v.Name.Value,
-				Value: value,
+			if isBlock == false {
+				attrs[v.Name.Value] = &schema.Attribute{
+					Name:  v.Name.Value,
+					Value: value,
+				}
 			}
 		case *ast.ExpressionStatement:
 			switch expr := v.Expression.(type) {

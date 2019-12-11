@@ -55,15 +55,83 @@ keke = true;
 	}
 }
 
+func TestAssignStatement_Object(t *testing.T) {
+	testCases := []struct {
+		input               string
+		expectedIdentifiers []struct {
+			expectedIdentifier string
+			expectedStmtName   string
+			expectedStmtValue  int
+		}
+	}{
+		{
+			`x = {
+	y = 10;
+};`,
+			[]struct {
+				expectedIdentifier string
+				expectedStmtName   string
+				expectedStmtValue  int
+			}{
+				{"x", "y", 10},
+			},
+		},
+	}
+
+	for n, tc := range testCases {
+		l := lexer.NewLexer(tc.input)
+		p := NewParser(l)
+
+		program := p.ParseProgram()
+		if program == nil {
+			t.Fatalf("ParseProgram() failed testCase[%d] got nil program", n)
+		}
+
+		if len(program.Statements) != len(tc.expectedIdentifiers) {
+			t.Fatalf("program.Statements wrong number returned, got:%d, want%d", len(program.Statements), len(tc.expectedIdentifiers))
+		}
+
+		for i, expectedIdentifiers := range tc.expectedIdentifiers {
+			stmt := program.Statements[i]
+
+			if !testAssignStatement(t, stmt, expectedIdentifiers.expectedIdentifier) {
+				t.Fatalf("parse assigntStatement failed")
+			}
+
+			asStmt, ok := stmt.(*ast.AssignStatement)
+			if !ok {
+				t.Fatalf("stmt was not ast.AssignStatement, got:%T", stmt)
+			}
+
+			expr, ok := asStmt.Value.(*ast.BlockExpression)
+			if !ok {
+				t.Fatalf("stmt.Value was not ast.BlockExpression, got:%T", asStmt.Value)
+			}
+
+			if len(expr.Blocks.Statements) != 1 {
+				t.Fatalf("expr.Blocks.Statements wrong number returned, got:%d, want%d", len(expr.Blocks.Statements), 1)
+			}
+
+			asStmt, ok = expr.Blocks.Statements[0].(*ast.AssignStatement)
+			if !ok {
+				t.Fatalf("stmt of block statement was not ast.AssignStatement, got:%T", stmt)
+			}
+
+			if !testAssignStatement(t, asStmt, expectedIdentifiers.expectedStmtName) {
+				t.Fatalf("parse assigntStatement failed")
+			}
+		}
+	}
+}
+
 func testAssignStatement(t *testing.T, s ast.Statement, name string) bool {
 	asStmt, ok := s.(*ast.AssignStatement)
 	if !ok {
-		t.Errorf("s not *ast.AssignStatement, got=%T", s)
+		t.Errorf("s not *ast.AssignStatement, got:%T", s)
 		return false
 	}
-
 	if asStmt.Name.Value != name {
-		t.Errorf("asStmt.NAme.Value(=Identifier) wrong, got: '%s', want: %s", asStmt.Name.Value, name)
+		t.Errorf("asStmt.Name.Value(=Identifier) wrong, got: '%s', want: %s", asStmt.Name.Value, name)
 		return false
 	}
 

@@ -250,6 +250,7 @@ func decodeBlockToStruct(block *schema.Block, val reflect.Value) {
 		default:
 			if isPtr {
 				v := reflect.New(ty)
+				decodeBlockToStruct(blocks[0], v.Elem())
 				val.Field(fieldIdx).Set(v)
 			} else {
 				errs = append(errs, errors.New("block is not a pointer"))

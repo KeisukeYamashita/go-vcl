@@ -71,6 +71,7 @@ func (p *Parser) init() {
 	p.registerPrefix(token.SUBROUTINE, p.parseBlockExpression)
 	p.registerPrefix(token.ACL, p.parseBlockExpression)
 	p.registerPrefix(token.BACKEND, p.parseBlockExpression)
+	p.registerPrefix(token.LBRACE, p.parseObjectExpression)
 
 	p.infixParseFn = make(map[token.Type]infixParseFn)
 	p.registerInfix(token.MATCH, p.parseInfixExpression)
@@ -236,6 +237,21 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	}
 
 	return block
+}
+
+func (p *Parser) parseObjectExpression() ast.Expression {
+	expr := &ast.BlockExpression{
+		Token: p.curToken,
+	}
+
+	expr.Labels = []string{}
+
+	if p.peekTokenIs(token.SEMICOLON) {
+		return expr
+	}
+
+	expr.Blocks = p.parseBlockStatement()
+	return expr
 }
 
 func (p *Parser) registerPrefix(tokenType token.Type, fn prefixParseFn) {

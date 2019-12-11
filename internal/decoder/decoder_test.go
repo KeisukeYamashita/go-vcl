@@ -163,8 +163,56 @@ sub pipe_something {
 	}
 }
 
-func TestBlockToStruct(t *testing.T) {
+func TestDecodeProgramToStruct_NestedBlock(t *testing.T) {
+	type Probe struct {
+		X int64 `vcl:"x"`
+	}
 
+	type Backend struct {
+		Type  string `vcl:"type,label"`
+		IP    string `vcl:".ip"`
+		Probe *Probe `vcl:".probe,block"`
+	}
+
+	type Root struct {
+		Backends []*Backend `vcl:"backend,block"`
+	}
+
+	testCases := map[string]struct {
+		input    string
+		val      interface{}
+		expected interface{}
+	}{
+		"with nested simple block": {
+			`backend remote {
+	.ip = "localhost";
+	.probe = {
+		x = 10;
+	};
+}`, &Root{}, &Root{Backends: []*Backend{&Backend{Type: "remote", IP: "localhost", Probe: &Probe{X: 10}}}},
+		},
+	}
+
+	for n, tc := range testCases {
+		t.Run(n, func(t *testing.T) {
+			l := lexer.NewLexer(tc.input)
+			p := parser.NewParser(l)
+			program := p.ParseProgram()
+			root := tc.val
+			val := reflect.ValueOf(root).Elem()
+			errs := decodeProgramToStruct(program, val)
+
+			if len(errs) > 0 {
+				t.Fatalf("decodeProgramToStruct_Block has errorr, err:%v", errs)
+			}
+
+			// pp.Println(tc.val)
+
+			if !reflect.DeepEqual(tc.val, tc.expected) {
+				t.Fatalf("decodeProgramToStruct_Block got wrong result, got:%#v", tc.val)
+			}
+		})
+	}
 }
 
 func TestImpliedBodySchema(t *testing.T) {
