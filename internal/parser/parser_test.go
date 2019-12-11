@@ -6,6 +6,7 @@ import (
 
 	"github.com/KeisukeYamashita/go-vcl/internal/ast"
 	"github.com/KeisukeYamashita/go-vcl/internal/lexer"
+	"github.com/k0kubun/pp"
 )
 
 func TestAssignStatement(t *testing.T) {
@@ -549,6 +550,7 @@ func TestBlockStatement(t *testing.T) {
 			}
 
 			if len(expr.Labels) != len(tc.expectedLabels) {
+				pp.Println(expr.Labels)
 				t.Fatalf("blockExpression labels length does not match, got:%d, want:%d", len(expr.Labels), len(tc.expectedLabels))
 			}
 

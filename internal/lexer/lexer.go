@@ -41,7 +41,7 @@ func (l *Lexer) readChar() {
 // readIndentifier ...
 func (l *Lexer) readIndentifier() string {
 	pos := l.pos
-	for isLetter(l.char) {
+	for isLetter(l.char) || isDigit(l.char) {
 		l.readChar()
 	}
 	return l.input[pos:l.pos]

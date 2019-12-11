@@ -139,7 +139,7 @@ sub pipe_something {
 	.host = "host";
 	.ip = "ip";
 }
-`, &RootSub{}, &RootSub{Subs: []*SubObj{&SubObj{Type: "pipe_something", Name: "keke", Host: "host", IP: "ip"}}},
+`, &RootSub{}, &RootSub{Subs: []*SubObj{&SubObj{Type: "pipe_something", Name: "pipe_keke", Host: "host", IP: "ip"}}},
 		},
 	}
 
