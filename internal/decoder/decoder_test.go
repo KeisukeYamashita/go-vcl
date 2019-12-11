@@ -79,8 +79,9 @@ func TestDecodeProgramToStruct_Block(t *testing.T) {
 
 	type SubObj struct {
 		Type string `vcl:"type,label"`
-		Host string `vcl:"host,field"`
-		IP   string `vcl:"ip,field"`
+		Name string `vcl:"name,label"`
+		Host string `vcl:".host"`
+		IP   string `vcl:".ip"`
 	}
 
 	type RootSub struct {
@@ -134,11 +135,11 @@ sub pipe_something {
 `, &RootSub{}, &RootSub{Subs: []*SubObj{&SubObj{Type: "pipe_something", Host: "host", IP: "ip"}}},
 		},
 		"with multi label": {
-			`sub pipe_something {
+			`sub pipe_something pipe_keke {
 	.host = "host";
 	.ip = "ip";
 }
-`, &RootSub{}, &RootSub{Subs: []*SubObj{&SubObj{Type: "pipe_something", Host: "host", IP: "ip"}}},
+`, &RootSub{}, &RootSub{Subs: []*SubObj{&SubObj{Type: "pipe_something", Name: "keke", Host: "host", IP: "ip"}}},
 		},
 	}
 

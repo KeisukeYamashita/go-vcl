@@ -169,11 +169,10 @@ func decodeBlockToStruct(block *schema.Block, val reflect.Value) {
 	content := traversal.BodyContent(block.Body)
 
 	for i, n := range tags.Labels {
-		var label string
-		var ok bool
-		if label, ok = block.Labels[i]; !ok {
+		if i+1 > len(block.Labels) {
 			continue
 		}
+		label := block.Labels[i]
 		fieldV := val.Field(n.FieldIndex)
 		fieldV.Set(reflect.ValueOf(label))
 	}
@@ -442,8 +441,6 @@ func getFieldTags(ty reflect.Type) *fieldTags {
 				FieldIndex: i,
 				Name:       name,
 			})
-		case "field":
-			ret.Attributes[fmt.Sprintf(".%s", name)] = i
 		default:
 			panic(fmt.Sprintf("invalid vcl field tag kind %q on %s %q", kind, field.Type.String(), field.Name))
 		}

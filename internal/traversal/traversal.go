@@ -37,7 +37,7 @@ func convertBody(stmts []ast.Statement) *schema.BodyContent {
 			case *ast.IntegerLiteral:
 				value = lit.Value
 			default:
-				panic("cannot pass invalid argument")
+				panic("cannot pass invalid argument which is no a literal")
 			}
 
 			attrs[v.Name.Value] = &schema.Attribute{

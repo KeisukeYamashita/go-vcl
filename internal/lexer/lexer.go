@@ -147,7 +147,6 @@ func (l *Lexer) NextToken() token.Token {
 		tok.Type = token.EOF
 		tok.Literal = ""
 	default:
-		// TODO(KeisukeYamashita): add cidr
 		if isLetter(l.char) {
 			tok.Literal = l.readIndentifier()
 			tok.Type = token.LookupIndent(tok.Literal)
@@ -166,7 +165,7 @@ func (l *Lexer) NextToken() token.Token {
 }
 
 func isLetter(char byte) bool {
-	return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || char == '_' || char == '.' || '1' <= char && char <= '9'
+	return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || char == '_' || char == '.'
 }
 
 func isDigit(char byte) bool {
