@@ -2,6 +2,15 @@
 
 > VCL parser written in Go
 
+<figure style="margin:40px 0px;text-align:center">
+  <img src="./_images/logo.png" style="width:100%"/>
+  <figcaption style="text-align:center">
+    <h2>go-vcl</h2>
+    <h4>Go written VCL parser</h4>
+  </figcaption>
+</figure>
+
+
 [![GitHub Actions][github-actions-badge]][github-actions]
 [![GoDoc][godoc-badge]][godoc]
 [![Go Report Card][go-report-card-badge]][go-report-card]
@@ -88,6 +97,10 @@ go-vcl is released under the MIT license.
 
 * [KeisukeYamashita](https://github.com/KeisukeYamashita)
 
+## Logo
+
+Icon made by Vitaly Gorbachev perfect from www.flaticon.com
+
 <!-- badge links -->
 
 [dependabot]: https://dependabot.com 
@@ -105,9 +118,8 @@ go-vcl is released under the MIT license.
 [deepsource]: https://deepsource.io/gh/KeisukeYamashita/go-vcl/?ref=repository-badge
 [deepsource-badge]: https://static.deepsource.io/deepsource-badge-light.svg
 
-
 [github-actions]: https://github.com/KeisukeYamashita/go-vcl/actions
-[github-actions-badge]: https://github.com/KeisukeYamashita/go-vcl/workflows/Main%20Workflow/badge.svg
+[github-actions-badge]: https://github.com/KeisukeYamashita/go-vcl/workflows/Test/badge.svg
 
 [golangci]: https://golangci.com/r/github.com/KeisukeYamashita/go-vcl
 [golangci-badge]: https://golangci.com/badges/github.com/KeisukeYamashita/go-vcl.svg
