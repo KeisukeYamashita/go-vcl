@@ -31,6 +31,7 @@ const (
 
 	COMMA     = ","
 	SEMICOLON = ";"
+	COLON     = ":"
 
 	LPAREN = "("
 	RPAREN = ")"
@@ -46,6 +47,7 @@ const (
 	BACKEND    = "BACKEND"
 	SUBROUTINE = "SUBROUTINE"
 	CALL       = "CALL"
+	DIRECTOR   = "DIRECTOR"
 )
 
 // NewToken ...
@@ -57,16 +59,17 @@ func NewToken(tokenType Type, char byte) Token {
 }
 
 var keywords = map[string]Type{
-	"sub":     SUBROUTINE,
-	"call":    CALL,
-	"true":    TRUE,
-	"false":   FALSE,
-	"if":      IF,
-	"else":    ELSE,
-	"return":  RETURN,
-	"import":  IMPORT,
-	"acl":     ACL,
-	"backend": BACKEND,
+	"sub":      SUBROUTINE,
+	"call":     CALL,
+	"true":     TRUE,
+	"false":    FALSE,
+	"if":       IF,
+	"else":     ELSE,
+	"return":   RETURN,
+	"import":   IMPORT,
+	"acl":      ACL,
+	"backend":  BACKEND,
+	"director": DIRECTOR,
 }
 
 // LookupIndent ...
