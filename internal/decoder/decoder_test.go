@@ -163,6 +163,49 @@ sub pipe_something {
 	}
 }
 
+func TestDecodeProgramToStruct_DirectorBlock(t *testing.T) {
+	type Director struct {
+		Type    string `vcl:"type,label"`
+		Name    string `vcl:"name,label"`
+		Retries int64  `vcl:".retries"`
+	}
+
+	type Root struct {
+		Directors []*Director `vcl:"director,block"`
+	}
+
+	testCases := map[string]struct {
+		input    string
+		val      interface{}
+		expected interface{}
+	}{
+		"with single director block": {
+			`director my_dir random {
+				.retries = 3;
+			}`, &Root{}, &Root{Directors: []*Director{&Director{Type: "my_dir", Name: "random", Retries: 3}}},
+		},
+	}
+
+	for n, tc := range testCases {
+		t.Run(n, func(t *testing.T) {
+			l := lexer.NewLexer(tc.input)
+			p := parser.NewParser(l)
+			program := p.ParseProgram()
+			root := tc.val
+			val := reflect.ValueOf(root).Elem()
+			errs := decodeProgramToStruct(program, val)
+
+			if len(errs) > 0 {
+				t.Fatalf("decodeProgramToStruct_Block has errorr, err:%v", errs)
+			}
+
+			if !reflect.DeepEqual(tc.val, tc.expected) {
+				t.Fatalf("decodeProgramToStruct_Block got wrong result, got:%#v", tc.val)
+			}
+		})
+	}
+}
+
 func TestDecodeProgramToStruct_NestedBlock(t *testing.T) {
 	type Probe struct {
 		X int64 `vcl:"x"`

@@ -71,6 +71,7 @@ func (p *Parser) init() {
 	p.registerPrefix(token.SUBROUTINE, p.parseBlockExpression)
 	p.registerPrefix(token.ACL, p.parseBlockExpression)
 	p.registerPrefix(token.BACKEND, p.parseBlockExpression)
+	p.registerPrefix(token.DIRECTOR, p.parseBlockExpression)
 	p.registerPrefix(token.LBRACE, p.parseObjectExpression)
 
 	p.infixParseFn = make(map[token.Type]infixParseFn)
