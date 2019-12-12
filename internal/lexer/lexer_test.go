@@ -84,23 +84,6 @@ func TestNextToken(t *testing.T) {
 				{token.RBRACE, "}"},
 			},
 		},
-		{
-			`table keke_id {
-				"key1": "value1";
-			}`,
-			[]struct {
-				expectedType    token.Type
-				expectedLiteral string
-			}{
-				{token.DIRECTOR, "table"},
-				{token.IDENT, "keke_id"},
-				{token.IDENT, "key1"},
-				{token.COLON, ":"},
-				{token.IDENT, "value1"},
-				{token.SEMICOLON, ";"},
-				{token.RBRACE, "}"},
-			},
-		},
 	}
 
 	for i, tc := range testCases {
