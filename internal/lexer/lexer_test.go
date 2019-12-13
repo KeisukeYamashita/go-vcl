@@ -33,7 +33,7 @@ func TestNextToken(t *testing.T) {
 				{token.FALSE, "false"},
 				{token.BANG, "!"},
 				{token.CIDR, "\"35.0.0.0\"/23"},
-				{token.I, "server1"},
+				{token.IDENT, "server1"},
 				{token.IDENT, "K_backend1"},
 			},
 		},

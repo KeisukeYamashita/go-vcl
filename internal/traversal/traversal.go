@@ -69,7 +69,11 @@ func convertBody(stmts []ast.Statement) *schema.BodyContent {
 					block.Labels = expr.Labels
 				}
 
-				blocks = append(blocks, block)
+				if block.Type == "{" {
+					flats = append(flats, block)
+				} else {
+					blocks = append(blocks, block)
+				}
 			case *ast.StringLiteral:
 				flats = append(flats, expr.Value)
 			case *ast.CIDRLiteral:

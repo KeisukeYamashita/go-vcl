@@ -185,11 +185,11 @@ func TestDecodeProgramToStruct_DirectorBlock(t *testing.T) {
 		val      interface{}
 		expected interface{}
 	}{
-		// "with single director block": {
-		// 	`director my_dir random {
-		// 		.retries = 3;
-		// 	}`, &Root{}, &Root{Directors: []*Director{&Director{Type: "my_dir", Name: "random", Retries: 3, Backends: []*Backend{}}}},
-		// },
+		"with single director block": {
+			`director my_dir random {
+				.retries = 3;
+			}`, &Root{}, &Root{Directors: []*Director{&Director{Type: "my_dir", Name: "random", Retries: 3, Backends: []*Backend{}}}},
+		},
 		"with deep director block": {
 			`director my_dir random {
 				.retries = 3;
