@@ -70,6 +70,7 @@ func convertBody(stmts []ast.Statement) *schema.BodyContent {
 				}
 
 				if block.Type == "{" {
+					// this is flatten block
 					flats = append(flats, block)
 				} else {
 					blocks = append(blocks, block)

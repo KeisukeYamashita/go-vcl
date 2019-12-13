@@ -193,11 +193,15 @@ func TestDecodeProgramToStruct_DirectorBlock(t *testing.T) {
 		"with deep director block": {
 			`director my_dir random {
 				.retries = 3;
-				{ 
-					.backend = K_backend1; 
-					.weight = 1; 
-				}
+				{ .backend = K_backend1; .weight = 1; }
 			}`, &Root{}, &Root{Directors: []*Director{&Director{Type: "my_dir", Name: "random", Retries: 3, Backends: []*Backend{&Backend{Backend: "K_backend1", Weight: 1}}}}},
+		},
+		"with multiple deep director block": {
+			`director my_dir random {
+				.retries = 3;
+				{ .backend = K_backend1; .weight = 1; }
+				{ .backend = E_backend1; .weight = 3; }
+			}`, &Root{}, &Root{Directors: []*Director{&Director{Type: "my_dir", Name: "random", Retries: 3, Backends: []*Backend{&Backend{Backend: "K_backend1", Weight: 1}, &Backend{Backend: "E_backend1", Weight: 3}}}}},
 		},
 	}
 
