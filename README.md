@@ -43,7 +43,7 @@ type Root struct {
 
 type ACL struct {
     Type      string   `vcl:"type,label`
-    Endpoints []string `vcl:"endpoints,flat"`
+    Endpoints []string `vcl:",flat"`
 }  
 ```
 

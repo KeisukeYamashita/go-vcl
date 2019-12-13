@@ -69,12 +69,12 @@ func TestDecodeProgramToStruct_Block(t *testing.T) {
 	type ACL struct {
 		Type      string   `vcl:"type,label"`
 		Name      string   `vcl:"name,label"`
-		Endpoints []string `vcl:"endpoints,flat"`
+		Endpoints []string `vcl:",flat"`
 	}
 
 	type Sub struct {
 		Type      string   `vcl:"type,label"`
-		Endpoints []string `vcl:"endpoints,flat"` // Memo(KeisukeYamashita): Wont test inside of the block
+		Endpoints []string `vcl:",flat"` // Memo(KeisukeYamashita): Wont test inside of the block
 	}
 
 	type SubObj struct {
@@ -157,17 +157,23 @@ sub pipe_something {
 			}
 
 			if !reflect.DeepEqual(tc.val, tc.expected) {
-				t.Fatalf("decodeProgramToStruct_Block got wrong result, got:%#v", tc.val)
+				t.Fatalf("decodeProgramToStruct_Block got wrong result, got:%#v, want:%#v", tc.val, tc.expected)
 			}
 		})
 	}
 }
 
 func TestDecodeProgramToStruct_DirectorBlock(t *testing.T) {
+	type Backend struct {
+		Backend string `vcl:".backend"`
+		Weight  int64  `vcl:".weight"`
+	}
+
 	type Director struct {
-		Type    string `vcl:"type,label"`
-		Name    string `vcl:"name,label"`
-		Retries int64  `vcl:".retries"`
+		Type     string     `vcl:"type,label"`
+		Name     string     `vcl:"name,label"`
+		Retries  int64      `vcl:".retries"`
+		Backends []*Backend `vcl:",flat"`
 	}
 
 	type Root struct {
@@ -179,10 +185,19 @@ func TestDecodeProgramToStruct_DirectorBlock(t *testing.T) {
 		val      interface{}
 		expected interface{}
 	}{
-		"with single director block": {
+		// "with single director block": {
+		// 	`director my_dir random {
+		// 		.retries = 3;
+		// 	}`, &Root{}, &Root{Directors: []*Director{&Director{Type: "my_dir", Name: "random", Retries: 3, Backends: []*Backend{}}}},
+		// },
+		"with deep director block": {
 			`director my_dir random {
 				.retries = 3;
-			}`, &Root{}, &Root{Directors: []*Director{&Director{Type: "my_dir", Name: "random", Retries: 3}}},
+				{ 
+					.backend = K_backend1; 
+					.weight = 1; 
+				}
+			}`, &Root{}, &Root{Directors: []*Director{&Director{Type: "my_dir", Name: "random", Retries: 3, Backends: []*Backend{&Backend{Backend: "K_backend1", Weight: 1}}}}},
 		},
 	}
 
@@ -200,7 +215,7 @@ func TestDecodeProgramToStruct_DirectorBlock(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(tc.val, tc.expected) {
-				t.Fatalf("decodeProgramToStruct_Block got wrong result, got:%#v", tc.val)
+				t.Fatalf("decodeProgramToStruct_Block got wrong result, got:%#v, want:%#v", tc.val, tc.expected)
 			}
 		})
 	}
@@ -248,8 +263,6 @@ func TestDecodeProgramToStruct_NestedBlock(t *testing.T) {
 			if len(errs) > 0 {
 				t.Fatalf("decodeProgramToStruct_Block has errorr, err:%v", errs)
 			}
-
-			// pp.Println(tc.val)
 
 			if !reflect.DeepEqual(tc.val, tc.expected) {
 				t.Fatalf("decodeProgramToStruct_Block got wrong result, got:%#v", tc.val)

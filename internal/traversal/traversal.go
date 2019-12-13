@@ -44,6 +44,8 @@ func convertBody(stmts []ast.Statement) *schema.BodyContent {
 				}
 				block.Type = v.TokenLiteral()
 				blocks = append(blocks, block)
+			case *ast.Identifier:
+				value = lit.Value
 			default:
 				panic("cannot pass invalid argument which is no a literal")
 			}
