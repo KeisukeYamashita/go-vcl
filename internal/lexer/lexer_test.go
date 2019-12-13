@@ -15,7 +15,7 @@ func TestNextToken(t *testing.T) {
 		}
 	}{
 		{
-			`=~,; call == && || 10 "keke" false ! "35.0.0.0"/23; server1`,
+			`=~,; call == && || 10 "keke" false ! "35.0.0.0"/23; server1 K_backend1`,
 			[]struct {
 				expectedType    token.Type
 				expectedLiteral string
@@ -33,6 +33,8 @@ func TestNextToken(t *testing.T) {
 				{token.FALSE, "false"},
 				{token.BANG, "!"},
 				{token.CIDR, "\"35.0.0.0\"/23"},
+				{token.IDENT, "server1"},
+				{token.IDENT, "K_backend1"},
 			},
 		},
 		{
@@ -66,18 +68,22 @@ func TestNextToken(t *testing.T) {
 			},
 		},
 		{
-			"import directors; # load the directors",
+			`director my_dir random {
+				.retries = 3;
+			}`,
 			[]struct {
 				expectedType    token.Type
 				expectedLiteral string
 			}{
-				{token.IMPORT, "import"},
-				{token.IDENT, "directors"},
+				{token.DIRECTOR, "director"},
+				{token.IDENT, "my_dir"},
+				{token.IDENT, "random"},
+				{token.LBRACE, "{"},
+				{token.IDENT, ".retries"},
+				{token.ASSIGN, "="},
+				{token.INT, "3"},
 				{token.SEMICOLON, ";"},
-				{token.COMMENT, "#"},
-				{token.IDENT, "load"},
-				{token.IDENT, "the"},
-				{token.IDENT, "directors"},
+				{token.RBRACE, "}"},
 			},
 		},
 	}
@@ -88,11 +94,11 @@ func TestNextToken(t *testing.T) {
 		for j, expectedToken := range tc.expectedTokens {
 			tok := l.NextToken()
 			if tok.Type != expectedToken.expectedType {
-				t.Fatalf("failed[testCase:%d,%d] - wrong tokenType, want: %s, got: %s", i+1, j+1, expectedToken.expectedType, tok.Type)
+				t.Fatalf("failed[testCase:%d:%d] - wrong tokenType, want: %s(literal:%s), got: %s(literal:%s)", i+1, j+1, expectedToken.expectedType, expectedToken.expectedLiteral, tok.Type, tok.Literal)
 			}
 
 			if tok.Literal != expectedToken.expectedLiteral {
-				t.Fatalf("failed[testCase:%d,%d] - wrong literal, want: %s, got: %s", i+1, j+1, expectedToken.expectedLiteral, tok.Literal)
+				t.Fatalf("failed[testCase:%d:%d] - wrong literal, want: %s, got: %s", i+1, j+1, expectedToken.expectedLiteral, tok.Literal)
 			}
 		}
 	}

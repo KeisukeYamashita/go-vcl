@@ -287,6 +287,7 @@ func decodeBlockToStruct(block *schema.Block, val reflect.Value) {
 			for i, flat := range flats {
 				if isPtr {
 					v := reflect.New(ty)
+					decodeBlockToStruct(flat.(*schema.Block), v.Elem())
 					sli.Index(i).Set(v)
 				} else {
 					sli.Index(i).Set(reflect.ValueOf(flat))

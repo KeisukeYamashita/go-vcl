@@ -16,7 +16,7 @@ type Root struct {
 // ACL are acl blocks
 type ACL struct {
 	Type      string   `vcl:"type,label"`
-	Endpoints []string `vcl:"endpoints,flat"`
+	Endpoints []string `vcl:",flat"`
 }
 
 func main() {
