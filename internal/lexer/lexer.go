@@ -69,12 +69,21 @@ func (l *Lexer) readString() string {
 	return l.input[pos:l.pos]
 }
 
+func (l *Lexer) readPercentage(number string) string {
+	l.readChar()
+	return number + "%"
+}
+
 func (l *Lexer) peekChar() byte {
 	if l.readPos >= len(l.input) {
 		return 0
 	}
 
 	return l.input[l.readPos]
+}
+
+func (l *Lexer) curCharIs(b byte) bool {
+	return l.char == b
 }
 
 func (l *Lexer) eatWhiteSpace() {
@@ -152,7 +161,14 @@ func (l *Lexer) NextToken() token.Token {
 			tok.Type = token.LookupIndent(tok.Literal)
 			return tok // early return not to walk step
 		} else if isDigit(l.char) {
-			tok.Literal = l.readNumber()
+			number := l.readNumber()
+			if l.curCharIs('%') {
+				tok.Type = token.PERCENTAGE
+				tok.Literal = l.readPercentage(number)
+				return tok
+			}
+
+			tok.Literal = number
 			tok.Type = token.INT
 			return tok // early return not to walk step
 		} else {

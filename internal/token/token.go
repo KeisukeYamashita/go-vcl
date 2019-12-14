@@ -14,12 +14,13 @@ const (
 	EOF     = "EOF"
 	COMMENT = "COMMENT"
 
-	IDENT  = "IDENT"
-	INT    = "INT"
-	STRING = "STRING"
-	CIDR   = "CIDR"
-	TRUE   = "TRUE"
-	FALSE  = "FALSE"
+	IDENT      = "IDENT"
+	INT        = "INT"
+	PERCENTAGE = "PERCENTAGE"
+	STRING     = "STRING"
+	CIDR       = "CIDR"
+	TRUE       = "TRUE"
+	FALSE      = "FALSE"
 
 	ASSIGN = "="
 	MATCH  = "~"
@@ -32,6 +33,7 @@ const (
 	COMMA     = ","
 	SEMICOLON = ";"
 	COLON     = ":"
+	PERCENT   = "%"
 
 	LPAREN = "("
 	RPAREN = ")"

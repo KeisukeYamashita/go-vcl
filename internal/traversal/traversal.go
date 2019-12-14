@@ -32,6 +32,8 @@ func convertBody(stmts []ast.Statement) *schema.BodyContent {
 				value = lit.Value
 			case *ast.CIDRLiteral:
 				value = lit.Value
+			case *ast.PercentageLiteral:
+				value = lit.Value
 			case *ast.BooleanLiteral:
 				value = lit.Value
 			case *ast.IntegerLiteral:
