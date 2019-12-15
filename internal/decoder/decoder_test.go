@@ -172,6 +172,7 @@ func TestDecodeProgramToStruct_DirectorBlock(t *testing.T) {
 	type Director struct {
 		Type     string     `vcl:"type,label"`
 		Name     string     `vcl:"name,label"`
+		Quorum   string     `vcl:".quorum"`
 		Retries  int64      `vcl:".retries"`
 		Backends []*Backend `vcl:",flat"`
 	}
@@ -187,21 +188,24 @@ func TestDecodeProgramToStruct_DirectorBlock(t *testing.T) {
 	}{
 		"with single director block": {
 			`director my_dir random {
+				.quorum = 50%;
 				.retries = 3;
-			}`, &Root{}, &Root{Directors: []*Director{&Director{Type: "my_dir", Name: "random", Retries: 3, Backends: []*Backend{}}}},
+			}`, &Root{}, &Root{Directors: []*Director{&Director{Type: "my_dir", Name: "random", Quorum: "50%", Retries: 3, Backends: []*Backend{}}}},
 		},
 		"with deep director block": {
 			`director my_dir random {
+				.quorum = 50%;
 				.retries = 3;
 				{ .backend = K_backend1; .weight = 1; }
-			}`, &Root{}, &Root{Directors: []*Director{&Director{Type: "my_dir", Name: "random", Retries: 3, Backends: []*Backend{&Backend{Backend: "K_backend1", Weight: 1}}}}},
+			}`, &Root{}, &Root{Directors: []*Director{&Director{Type: "my_dir", Name: "random", Quorum: "50%", Retries: 3, Backends: []*Backend{&Backend{Backend: "K_backend1", Weight: 1}}}}},
 		},
 		"with multiple deep director block": {
 			`director my_dir random {
+				.quorum = 50%;
 				.retries = 3;
 				{ .backend = K_backend1; .weight = 1; }
 				{ .backend = E_backend1; .weight = 3; }
-			}`, &Root{}, &Root{Directors: []*Director{&Director{Type: "my_dir", Name: "random", Retries: 3, Backends: []*Backend{&Backend{Backend: "K_backend1", Weight: 1}, &Backend{Backend: "E_backend1", Weight: 3}}}}},
+			}`, &Root{}, &Root{Directors: []*Director{&Director{Type: "my_dir", Name: "random", Quorum: "50%", Retries: 3, Backends: []*Backend{&Backend{Backend: "K_backend1", Weight: 1}, &Backend{Backend: "E_backend1", Weight: 3}}}}},
 		},
 	}
 

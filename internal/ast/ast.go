@@ -183,3 +183,14 @@ func (i *CIDRLiteral) expressionNode() {}
 func (i *CIDRLiteral) TokenLiteral() string {
 	return i.Token.Literal
 }
+
+// PercentageLiteral ...
+type PercentageLiteral struct {
+	Token token.Token
+	Value string
+}
+
+func (i *PercentageLiteral) expressionNode() {}
+func (i *PercentageLiteral) TokenLiteral() string {
+	return i.Token.Literal
+}

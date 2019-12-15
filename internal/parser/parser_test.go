@@ -276,6 +276,36 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	}
 }
 
+func TestPercentageLiteralExpression(t *testing.T) {
+	input := "5%;"
+
+	l := lexer.NewLexer(input)
+	p := NewParser(l)
+	program := p.ParseProgram()
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements length is not expected, got:%d, want:%d", len(program.Statements), 1)
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got:%T", program.Statements[0])
+	}
+
+	ident, ok := stmt.Expression.(*ast.PercentageLiteral)
+	if !ok {
+		t.Fatalf("exp not *ast.Identifier, got:%T", stmt.Expression)
+	}
+
+	if ident.Value != "5%" {
+		t.Fatalf("ident.Value wrong, got:%s, want:%s", ident.Value, "5%")
+	}
+
+	if ident.TokenLiteral() != "5%" {
+		t.Errorf("ident.TokenLiteral wrong, got:%s, want:%s", ident.TokenLiteral(), "5%")
+	}
+}
+
 func TestBooleanExpression(t *testing.T) {
 	input := `true;
 false;`
