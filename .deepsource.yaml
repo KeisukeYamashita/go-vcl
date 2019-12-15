@@ -10,4 +10,3 @@ enabled = true
 
   [analyzers.meta]
   import_path = 'github.com/KeisukeYamashita/i'
-  
