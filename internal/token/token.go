@@ -45,6 +45,7 @@ const (
 
 	RETURN     = "RETURN"
 	IMPORT     = "IMPORT"
+	TABLE      = "TABLE"
 	ACL        = "ACL"
 	BACKEND    = "BACKEND"
 	SUBROUTINE = "SUBROUTINE"
@@ -68,6 +69,7 @@ var keywords = map[string]Type{
 	"if":       IF,
 	"else":     ELSE,
 	"return":   RETURN,
+	"table":    TABLE,
 	"import":   IMPORT,
 	"acl":      ACL,
 	"backend":  BACKEND,
