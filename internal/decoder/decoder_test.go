@@ -229,6 +229,48 @@ func TestDecodeProgramToStruct_DirectorBlock(t *testing.T) {
 	}
 }
 
+func TestDecodeProgramToStruct_TableBlock(t *testing.T) {
+	type Table struct {
+		Type     string `vcl:"type,label"`
+		Username string `vcl:"username"`
+	}
+
+	type Root struct {
+		Tables []*Table `vcl:"table,block"`
+	}
+
+	testCases := map[string]struct {
+		input    string
+		val      interface{}
+		expected interface{}
+	}{
+		"with single table block": {
+			`table my_id {
+				"username": "keke"
+			}`, &Root{}, &Root{[]*Table{&Table{Type: "my_id", Username: "keke"}}},
+		},
+	}
+
+	for n, tc := range testCases {
+		t.Run(n, func(t *testing.T) {
+			l := lexer.NewLexer(tc.input)
+			p := parser.NewParser(l)
+			program := p.ParseProgram()
+			root := tc.val
+			val := reflect.ValueOf(root).Elem()
+			errs := decodeProgramToStruct(program, val)
+
+			if len(errs) > 0 {
+				t.Fatalf("decodeProgramToStruct_Block has errorr, err:%v", errs)
+			}
+
+			if !reflect.DeepEqual(tc.val, tc.expected) {
+				t.Fatalf("decodeProgramToStruct_Block got wrong result, got:%#v, want:%#v", tc.val, tc.expected)
+			}
+		})
+	}
+}
+
 func TestDecodeProgramToStruct_NestedBlock(t *testing.T) {
 	type Probe struct {
 		X int64 `vcl:"x"`
