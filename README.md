@@ -13,6 +13,8 @@
 
 [![GitHub Actions][github-actions-badge]][github-actions]
 [![GoDoc][godoc-badge]][godoc]
+
+[![codecov](https://codecov.io/gh/KeisukeYamashita/go-vcl/branch/master/graph/badge.svg)](https://codecov.io/gh/KeisukeYamashita/go-vcl)
 [![Go Report Card][go-report-card-badge]][go-report-card]
 [![GolangCI][golangci-badge]][golangci]
 
