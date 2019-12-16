@@ -74,6 +74,7 @@ func (p *Parser) init() {
 	p.registerPrefix(token.BACKEND, p.parseBlockExpression)
 	p.registerPrefix(token.DIRECTOR, p.parseBlockExpression)
 	p.registerPrefix(token.LBRACE, p.parseObjectExpression)
+	p.registerPrefix(token.TABLE, p.parseBlockExpression)
 
 	p.infixParseFn = make(map[token.Type]infixParseFn)
 	p.registerInfix(token.MATCH, p.parseInfixExpression)
