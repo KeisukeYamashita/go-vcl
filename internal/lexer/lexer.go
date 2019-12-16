@@ -86,6 +86,10 @@ func (l *Lexer) curCharIs(b byte) bool {
 	return l.char == b
 }
 
+func (l *Lexer) peekCharIs(b byte) bool {
+	return l.peekChar() == b
+}
+
 func (l *Lexer) eatWhiteSpace() {
 	for l.char == ' ' || l.char == '\t' || l.char == '\n' || l.char == '\r' {
 		l.readChar()
@@ -99,7 +103,7 @@ func (l *Lexer) NextToken() token.Token {
 	tok := token.Token{}
 	switch l.char {
 	case '=':
-		if l.peekChar() == '=' {
+		if l.peekCharIs('=') {
 			char := l.char
 			l.readChar()
 			literal := string(char) + string(char)
@@ -107,6 +111,8 @@ func (l *Lexer) NextToken() token.Token {
 		} else {
 			tok = token.NewToken(token.ASSIGN, l.char)
 		}
+	case ':':
+		tok = token.NewToken(token.COLON, l.char)
 	case '~':
 		tok = token.NewToken(token.MATCH, l.char)
 	case ',':
