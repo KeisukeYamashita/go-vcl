@@ -15,4 +15,8 @@ jobs:
       - name: Download modules
         run: go get -d -v ./...
       - name: Test
-        run: go test ./...
+        run: go test -coverpkg=./... -coverprofile=coverage.txt -v ./...
+      - name: Send test coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
