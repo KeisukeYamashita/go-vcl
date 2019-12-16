@@ -311,6 +311,12 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseReturnStatement()
 	case token.CALL:
 		return p.parseCallStatement()
+	case token.STRING:
+		switch p.peekToken.Type {
+		case token.COLON:
+			return p.parseAssignFieldStatement()
+		}
+		fallthrough
 	default:
 		return p.parseExpressionStatement()
 	}
@@ -335,6 +341,31 @@ func (p *Parser) parseAssignStatement() ast.Statement {
 	stmt.Value = p.parseExpression(LOWEST)
 
 	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseAssignFieldStatement() ast.Statement {
+	stmt := &ast.AssignFieldStatement{
+		Token: p.curToken,
+	}
+
+	stmt.Name = &ast.Identifier{
+		Token: p.curToken,
+		Value: p.curToken.Literal,
+	}
+
+	if !p.expectPeek(token.COLON) {
+		p.peekError(token.COLON)
+		return nil
+	}
+
+	p.nextToken()
+	stmt.Value = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(token.COMMA) {
 		p.nextToken()
 	}
 
