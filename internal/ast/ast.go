@@ -92,6 +92,18 @@ type AssignStatement struct {
 	Value Expression
 }
 
+// AssignFieldStatement holds the Name for the Identifier and its value
+type AssignFieldStatement struct {
+	Token token.Token // token.ASSIGN_FIELD
+	Name  *Identifier
+	Value Expression
+}
+
+func (as *AssignFieldStatement) statementNode() {}
+func (as *AssignFieldStatement) TokenLiteral() string {
+	return as.Token.Literal
+}
+
 func (as *AssignStatement) statementNode() {}
 func (as *AssignStatement) TokenLiteral() string {
 	return as.Token.Literal

@@ -137,6 +137,76 @@ func testAssignStatement(t *testing.T, s ast.Statement, name string) bool {
 	return true
 }
 
+func TestAssignFieldStatement(t *testing.T) {
+	testCases := []struct {
+		input               string
+		expectedIdentifiers []struct {
+			expectedStmtName  string
+			expectedStmtValue string
+		}
+	}{
+		{
+			`"key": "value"`,
+			[]struct {
+				expectedStmtName  string
+				expectedStmtValue string
+			}{
+				{"key", "value"},
+			},
+		},
+	}
+
+	for n, tc := range testCases {
+		l := lexer.NewLexer(tc.input)
+		p := NewParser(l)
+
+		program := p.ParseProgram()
+		if program == nil {
+			t.Fatalf("ParseProgram() failed testCase[%d] got nil program", n)
+		}
+
+		if len(program.Statements) != len(tc.expectedIdentifiers) {
+			t.Fatalf("program.Statements wrong number returned, got:%d, want%d", len(program.Statements), len(tc.expectedIdentifiers))
+		}
+
+		for i, expectedIdentifiers := range tc.expectedIdentifiers {
+			stmt := program.Statements[i]
+
+			if !testAssignFieldStatement(t, stmt, expectedIdentifiers.expectedStmtName) {
+				t.Fatalf("parse assigntStatement failed")
+			}
+
+			asStmt, ok := stmt.(*ast.AssignFieldStatement)
+			if !ok {
+				t.Fatalf("stmt was not ast.AssignStatement, got:%T", stmt)
+			}
+
+			expr, ok := asStmt.Value.(*ast.StringLiteral)
+			if !ok {
+				t.Fatalf("stmt.Value was not ast.StringLiteral, got:%T", expr.Value)
+			}
+
+			if expr.Value != expectedIdentifiers.expectedStmtValue {
+				t.Fatalf("stmt.Value was not currect, got:%s, want:%s", expr.Value, expectedIdentifiers.expectedStmtValue)
+			}
+		}
+	}
+}
+
+func testAssignFieldStatement(t *testing.T, s ast.Statement, name string) bool {
+	asStmt, ok := s.(*ast.AssignFieldStatement)
+	if !ok {
+		t.Errorf("s not *ast.AssignFieldStatement, got:%T", s)
+		return false
+	}
+	if asStmt.Name.Value != name {
+		t.Errorf("asStmt.Name.Value(=Identifier) wrong, got: '%s', want: %s", asStmt.Name.Value, name)
+		return false
+	}
+
+	return true
+}
+
 func TestReturnStatement(t *testing.T) {
 	testCases := []struct {
 		input               string

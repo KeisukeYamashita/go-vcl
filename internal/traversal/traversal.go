@@ -58,6 +58,17 @@ func convertBody(stmts []ast.Statement) *schema.BodyContent {
 					Value: value,
 				}
 			}
+		case *ast.AssignFieldStatement:
+			var value interface{}
+			switch lit := v.Value.(type) {
+			case *ast.StringLiteral:
+				value = lit.Value
+			}
+
+			attrs[v.Name.Value] = &schema.Attribute{
+				Name:  v.Name.Value,
+				Value: value,
+			}
 		case *ast.ExpressionStatement:
 			switch expr := v.Expression.(type) {
 			case *ast.BlockExpression:
