@@ -246,8 +246,17 @@ func TestDecodeProgramToStruct_TableBlock(t *testing.T) {
 	}{
 		"with single table block": {
 			`table my_id {
-				"username": "keke"
-			}`, &Root{}, &Root{[]*Table{&Table{Type: "my_id", Username: "keke"}}},
+	"username": "keke"
+}`, &Root{}, &Root{[]*Table{&Table{Type: "my_id", Username: "keke"}}},
+		},
+		"with multiple table block": {
+			`table my_id {
+	"username": "keke"
+}
+
+table my_keke {
+	"username": "kekekun",
+}`, &Root{}, &Root{[]*Table{&Table{Type: "my_id", Username: "keke"}, &Table{Type: "my_keke", Username: "kekekun"}}},
 		},
 	}
 
