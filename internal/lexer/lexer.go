@@ -120,7 +120,26 @@ func (l *Lexer) NextToken() token.Token {
 	case ';':
 		tok = token.NewToken(token.SEMICOLON, l.char)
 	case '#':
-		tok = token.NewToken(token.COMMENT, l.char)
+		tok = token.NewToken(token.HASH, l.char)
+	case '/':
+		if l.peekCharIs('/') {
+			char := l.char
+			l.readChar()
+			literal := string(char) + string(char)
+			tok = token.Token{Type: token.COMMENTLINE, Literal: literal}
+		} else if l.peekCharIs('*') {
+			char := l.char
+			l.readChar()
+			literal := string(char) + string(l.char)
+			tok = token.Token{Type: token.LMULTICOMMENTLINE, Literal: literal}
+		}
+	case '*':
+		if l.peekCharIs('/') {
+			char := l.char
+			l.readChar()
+			literal := string(char) + string(l.char)
+			tok = token.Token{Type: token.RMULTICOMMENTLINE, Literal: literal}
+		}
 	case '(':
 		tok = token.NewToken(token.LPAREN, l.char)
 	case ')':

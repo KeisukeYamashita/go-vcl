@@ -71,6 +71,9 @@ func TestNextToken(t *testing.T) {
 		},
 		{
 			`director my_dir random {
+				// keke
+				/* Hello */
+				# 3 hi
 				.retries = 3;
 			}`,
 			[]struct {
@@ -81,6 +84,14 @@ func TestNextToken(t *testing.T) {
 				{token.IDENT, "my_dir"},
 				{token.IDENT, "random"},
 				{token.LBRACE, "{"},
+				{token.COMMENTLINE, "//"},
+				{token.IDENT, "keke"},
+				{token.LMULTICOMMENTLINE, "/*"},
+				{token.IDENT, "Hello"},
+				{token.RMULTICOMMENTLINE, "*/"},
+				{token.HASH, "#"},
+				{token.INT, "3"},
+				{token.IDENT, "hi"},
 				{token.IDENT, ".retries"},
 				{token.ASSIGN, "="},
 				{token.INT, "3"},
