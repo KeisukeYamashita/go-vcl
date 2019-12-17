@@ -389,6 +389,7 @@ type fieldTags struct {
 	Blocks     map[string]int
 	Labels     []labelField
 	Flats      []flatField
+	Comments   []commentField
 }
 
 // labelField is a struct that represents info about the struct tags of "vcl".
@@ -401,6 +402,11 @@ type flatField struct {
 	Name       string
 }
 
+type commentField struct {
+	FieldIndex int
+	Name       string
+}
+
 // getFieldTags retrieves the "vcl" tags of the given struct type.
 func getFieldTags(ty reflect.Type) *fieldTags {
 	ret := &fieldTags{
@@ -408,6 +414,7 @@ func getFieldTags(ty reflect.Type) *fieldTags {
 		Blocks:     map[string]int{},
 		Labels:     []labelField{},
 		Flats:      []flatField{},
+		Comments:   []commentField{},
 	}
 
 	ct := ty.NumField()
@@ -440,6 +447,11 @@ func getFieldTags(ty reflect.Type) *fieldTags {
 			})
 		case "flat":
 			ret.Flats = append(ret.Flats, flatField{
+				FieldIndex: i,
+				Name:       name,
+			})
+		case "comment":
+			ret.Comments = append(ret.Comments, commentField{
 				FieldIndex: i,
 				Name:       name,
 			})
