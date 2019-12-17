@@ -120,6 +120,16 @@ func (as *ReturnStatement) TokenLiteral() string {
 	return as.Token.Literal
 }
 
+type CommentStatement struct {
+	Token token.Token
+	Value string
+}
+
+func (as *CommentStatement) statementNode() {}
+func (as *CommentStatement) TokenLiteral() string {
+	return as.Token.Literal
+}
+
 // CallStatement holds the Name for the Identifier and its value
 type CallStatement struct {
 	Token     token.Token // token.ASSIGN

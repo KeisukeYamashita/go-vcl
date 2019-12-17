@@ -137,6 +137,41 @@ func testAssignStatement(t *testing.T, s ast.Statement, name string) bool {
 	return true
 }
 
+func TestCommentStatement(t *testing.T) {
+	testCases := map[string]struct {
+		input           string
+		expectedComment string
+	}{
+		"with single comment": {"/* keke */", "keke"},
+		"with long comment":   {"/* keke is happy */", "keke is happy"},
+	}
+
+	for n, tc := range testCases {
+		t.Run(n, func(t *testing.T) {
+			l := lexer.NewLexer(tc.input)
+			p := NewParser(l)
+
+			program := p.ParseProgram()
+			if program == nil {
+				t.Fatalf("ParseProgram() failed got nil program")
+			}
+
+			if len(program.Statements) != 1 {
+				t.Fatalf("program.Statements wrong number returned, got:%d, want:%d", len(program.Statements), 1)
+			}
+
+			stmt, ok := program.Statements[0].(*ast.CommentStatement)
+			if !ok {
+				t.Fatalf("stmt was not ast.CommentStatement, got:%T", program.Statements[0])
+			}
+
+			if stmt.Value != tc.expectedComment {
+				t.Fatalf("stmt.Value got wrong value got:%s, want:%s", stmt.Value, tc.expectedComment)
+			}
+		})
+	}
+}
+
 func TestAssignFieldStatement(t *testing.T) {
 	testCases := []struct {
 		input               string
