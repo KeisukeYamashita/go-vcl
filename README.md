@@ -73,6 +73,7 @@ There are struct tags you can use for you input.
 * `block`: Represents a unit of your block like `acl`, `sub`, etc...
 * `label`: The label of your block.
 * `flat`: Represents a expression field
+* `comment`: Get comments
 * `attr`: (Default) Attribute of your block
 
 ## Releases

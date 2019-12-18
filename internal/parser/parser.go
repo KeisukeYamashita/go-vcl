@@ -309,7 +309,7 @@ func (p *Parser) parseStatement() ast.Statement {
 			return p.parseExpressionStatement()
 		}
 	case token.LMULTICOMMENTLINE:
-		return p.parseCommentStatement()
+		return p.parseMultiCommentStatement()
 	case token.RETURN:
 		return p.parseReturnStatement()
 	case token.CALL:
@@ -401,7 +401,7 @@ func (p *Parser) parseReturnStatement() ast.Statement {
 	return stmt
 }
 
-func (p *Parser) parseCommentStatement() ast.Statement {
+func (p *Parser) parseMultiCommentStatement() ast.Statement {
 	stmt := &ast.CommentStatement{
 		Token: p.curToken,
 	}
