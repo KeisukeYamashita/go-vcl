@@ -16,7 +16,7 @@ import (
 func Decode(program *ast.Program, val interface{}) []error {
 	rv := reflect.ValueOf(val)
 	if rv.Kind() != reflect.Ptr {
-		panic(fmt.Sprintf("target value must be a pointer, not: %s", rv.Type().String()))
+		return []error{fmt.Errorf("target value must be a pointer, not: %s", rv.Type().String())}
 	}
 
 	return decodeProgramToValue(program, rv.Elem())

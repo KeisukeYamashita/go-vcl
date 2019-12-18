@@ -18,17 +18,29 @@ func TestDecode(t *testing.T) {
 	testStruct := &TestStruct{}
 	prog := &ast.Program{}
 
-	testCases := []struct {
-		input   interface{}
-		program *ast.Program
+	testCases := map[string]struct {
+		input       interface{}
+		program     *ast.Program
+		shouldError bool
 	}{
-		{testStruct, prog},
+		"with pointer":     {testStruct, prog, false},
+		"with not-pointer": {*testStruct, prog, true},
 	}
 
 	for n, tc := range testCases {
-		if errs := Decode(tc.program, tc.input); len(errs) > 0 {
-			t.Fatalf("decode failed with error[testcase:%d]", n)
-		}
+		t.Run(n, func(t *testing.T) {
+			if errs := Decode(tc.program, tc.input); len(errs) > 0 {
+				if tc.shouldError {
+					return
+				}
+
+				t.Fatalf("decode failed with error: %v", errs)
+			}
+
+			if tc.shouldError {
+				t.Fatalf("decode should failed but successed")
+			}
+		})
 	}
 }
 
