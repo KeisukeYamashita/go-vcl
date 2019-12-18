@@ -79,6 +79,9 @@ func (l *Lexer) readCommentLine() string {
 	pos := l.pos + 1 // Memo(KeisukeYamashita): Remove the first white space
 	for !isNewLine(l.char) {
 		l.readChar()
+		if l.char == 0 {
+			break
+		}
 	}
 
 	return l.input[pos:l.pos]
