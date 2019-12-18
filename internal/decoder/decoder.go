@@ -188,24 +188,68 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 
 func decodeProgramToMap(program *ast.Program, val reflect.Value) []error {
 	var errs []error
-	contents := traversal.Content(program)
-	if contents.Attributes == nil {
+	content := traversal.Content(program)
+	if content.Attributes == nil {
 		return nil
 	}
 
 	mv := reflect.MakeMap(val.Type())
 
-	for k, attr := range contents.Attributes {
+	for k, attr := range content.Attributes {
 		mv.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(attr.Value))
 	}
 
-	blocksByType := contents.Blocks.ByType()
-	for ty, block := range blocksByType {
-		// pp.Println(ty, block)
+	blocksByType := content.Blocks.ByType()
+
+	for tyName, blocks := range blocksByType {
+		var isSlice bool
+		if len(blocks) != 1 {
+			isSlice = true
+		}
+
+		switch {
+		case isSlice:
+
+		default:
+			block := blocks[0]
+			v := reflect.New(val.Type()).Elem()
+			decodeBlockToMap(block, v)
+			mv.SetMapIndex(reflect.ValueOf(tyName), v)
+		}
 	}
 
 	val.Set(mv)
 	return errs
+}
+
+func decodeBlockToMap(block *schema.Block, val reflect.Value) {
+	content := traversal.BodyContent(block.Body)
+	mv := reflect.MakeMap(val.Type())
+
+	for k, attr := range content.Attributes {
+		mv.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(attr.Value))
+	}
+
+	blocksByType := content.Blocks.ByType()
+
+	for tyName, blocks := range blocksByType {
+		var isSlice bool
+		if len(blocks) != 1 {
+			isSlice = true
+		}
+
+		switch {
+		case isSlice:
+
+		default:
+			block := blocks[0]
+			v := reflect.New(val.Type()).Elem()
+			decodeBlockToMap(block, v)
+			mv.SetMapIndex(reflect.ValueOf(tyName), v)
+		}
+	}
+
+	val.Set(mv)
 }
 
 // decodeBlockToStruct decodes a block into a struct passed by val
