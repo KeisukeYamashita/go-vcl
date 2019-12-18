@@ -202,20 +202,26 @@ func decodeProgramToMap(program *ast.Program, val reflect.Value) []error {
 	blocksByType := content.Blocks.ByType()
 
 	for tyName, blocks := range blocksByType {
-		var isSlice bool
-		if len(blocks) != 1 {
-			isSlice = true
-		}
-
-		switch {
-		case isSlice:
-
-		default:
-			block := blocks[0]
+		mp := reflect.MakeMap(val.Type())
+		for _, block := range blocks {
 			v := reflect.New(val.Type()).Elem()
 			decodeBlockToMap(block, v)
-			mv.SetMapIndex(reflect.ValueOf(tyName), v)
+
+			var blockType string
+			if len(block.Labels) > 0 {
+				blockType = block.Labels[0]
+			}
+
+			for _, label := range block.Labels[1:] {
+				tmpMap := reflect.MakeMap(val.Type())
+				tmpMap.SetMapIndex(reflect.ValueOf(label), v)
+				v = tmpMap
+			}
+
+			mp.SetMapIndex(reflect.ValueOf(blockType), v)
 		}
+
+		mv.SetMapIndex(reflect.ValueOf(tyName), mp)
 	}
 
 	val.Set(mv)
@@ -240,7 +246,21 @@ func decodeBlockToMap(block *schema.Block, val reflect.Value) {
 
 		switch {
 		case isSlice:
+			sli := reflect.MakeSlice(reflect.SliceOf(val.Type()), len(blocks), len(blocks))
+			for i, block := range blocks {
+				v := reflect.New(val.Type()).Elem()
+				decodeBlockToMap(block, v)
 
+				for _, label := range block.Labels {
+					tmpMap := reflect.MakeMap(val.Type())
+					tmpMap.SetMapIndex(reflect.ValueOf(label), v)
+					v = tmpMap
+				}
+
+				sli.Index(i).Set(v)
+			}
+
+			mv.SetMapIndex(reflect.ValueOf(tyName), sli)
 		default:
 			block := blocks[0]
 			v := reflect.New(val.Type()).Elem()

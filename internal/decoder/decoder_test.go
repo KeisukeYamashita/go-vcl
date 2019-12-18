@@ -8,7 +8,6 @@ import (
 	"github.com/KeisukeYamashita/go-vcl/internal/lexer"
 	"github.com/KeisukeYamashita/go-vcl/internal/parser"
 	"github.com/KeisukeYamashita/go-vcl/internal/schema"
-	"github.com/k0kubun/pp"
 )
 
 func TestDecode(t *testing.T) {
@@ -397,7 +396,15 @@ func TestDecodeProgramToMap(t *testing.T) {
 		"with single attr": {`x = hello`, map[string]interface{}{}, map[string]interface{}{"x": "hello"}},
 		"with multiple attr": {`x = hello;
 y = bye`, map[string]interface{}{}, map[string]interface{}{"x": "hello", "y": "bye"}},
-		"with single block": {`acl hello {x = "test"}`, map[string]interface{}{}, map[string]interface{}{"acl": map[string]interface{}{"x": "test"}}},
+		"with single block": {`acl hello {x = "test"}`, map[string]interface{}{}, map[string]interface{}{"acl": map[string]interface{}{"hello": map[string]interface{}{"x": "test"}}}},
+		"with multiple block": {`acl hello {
+	x = "test";
+}
+
+acl bye {
+	y = "keke";
+}
+`, map[string]interface{}{}, map[string]interface{}{"acl": map[string]interface{}{"hello": map[string]interface{}{"x": "test"}, "bye": map[string]interface{}{"y": "keke"}}}},
 	}
 
 	for n, tc := range testCases {
@@ -411,9 +418,6 @@ y = bye`, map[string]interface{}{}, map[string]interface{}{"x": "hello", "y": "b
 			if len(errs) > 0 {
 				t.Fatalf("decodeProgramToStruct has errors, err:%v", errs)
 			}
-
-			pp.Println(tc.val)
-			pp.Println(tc.expected)
 
 			if !reflect.DeepEqual(&tc.val, &tc.expected) {
 				t.Fatalf("decodeProgramToStruct got wrong result got:%v want:%v", tc.val, tc.expected)
