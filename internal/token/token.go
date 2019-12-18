@@ -12,7 +12,6 @@ type Type string
 const (
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF"
-	COMMENT = "COMMENT"
 
 	IDENT      = "IDENT"
 	INT        = "INT"
@@ -34,11 +33,15 @@ const (
 	SEMICOLON = ";"
 	COLON     = ":"
 	PERCENT   = "%"
+	HASH      = "#"
 
-	LPAREN = "("
-	RPAREN = ")"
-	LBRACE = "{"
-	RBRACE = "}"
+	COMMENTLINE       = "//"
+	LMULTICOMMENTLINE = "/*"
+	RMULTICOMMENTLINE = "*/"
+	LPAREN            = "("
+	RPAREN            = ")"
+	LBRACE            = "{"
+	RBRACE            = "}"
 
 	IF   = "IF"
 	ELSE = "ELSE"

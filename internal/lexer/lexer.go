@@ -74,6 +74,19 @@ func (l *Lexer) readPercentage(number string) string {
 	return number + "%"
 }
 
+func (l *Lexer) readCommentLine() string {
+	l.readChar()
+	pos := l.pos + 1 // Memo(KeisukeYamashita): Remove the first white space
+	for !isNewLine(l.char) {
+		l.readChar()
+		if l.char == 0 {
+			break
+		}
+	}
+
+	return l.input[pos:l.pos]
+}
+
 func (l *Lexer) peekChar() byte {
 	if l.readPos >= len(l.input) {
 		return 0
@@ -120,7 +133,26 @@ func (l *Lexer) NextToken() token.Token {
 	case ';':
 		tok = token.NewToken(token.SEMICOLON, l.char)
 	case '#':
-		tok = token.NewToken(token.COMMENT, l.char)
+		literal := l.readCommentLine()
+		tok = token.Token{Type: token.HASH, Literal: literal}
+	case '/':
+		if l.peekCharIs('/') {
+			l.readChar()
+			literal := l.readCommentLine()
+			tok = token.Token{Type: token.COMMENTLINE, Literal: literal}
+		} else if l.peekCharIs('*') {
+			char := l.char
+			l.readChar()
+			literal := string(char) + string(l.char)
+			tok = token.Token{Type: token.LMULTICOMMENTLINE, Literal: literal}
+		}
+	case '*':
+		if l.peekCharIs('/') {
+			char := l.char
+			l.readChar()
+			literal := string(char) + string(l.char)
+			tok = token.Token{Type: token.RMULTICOMMENTLINE, Literal: literal}
+		}
 	case '(':
 		tok = token.NewToken(token.LPAREN, l.char)
 	case ')':
@@ -192,4 +224,8 @@ func isLetter(char byte) bool {
 
 func isDigit(char byte) bool {
 	return '0' <= char && char <= '9'
+}
+
+func isNewLine(char byte) bool {
+	return char == '\n'
 }

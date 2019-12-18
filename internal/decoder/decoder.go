@@ -159,6 +159,29 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 		}
 	}
 
+	for _, n := range tags.Comments {
+		comments := content.Comments
+		field := val.Type().Field(n.FieldIndex)
+		fieldTy := field.Type
+
+		var isSlice bool
+		if fieldTy.Kind() == reflect.Slice {
+			isSlice = true
+			fieldTy = fieldTy.Elem()
+		}
+
+		switch {
+		case isSlice:
+			sli := reflect.MakeSlice(reflect.SliceOf(fieldTy), len(comments), len(comments))
+
+			for i, comment := range comments {
+				sli.Index(i).Set(reflect.ValueOf(comment))
+			}
+
+			val.Field(n.FieldIndex).Set(sli)
+		}
+	}
+
 	return nil
 }
 
@@ -298,6 +321,29 @@ func decodeBlockToStruct(block *schema.Block, val reflect.Value) {
 		}
 	}
 
+	for _, n := range tags.Comments {
+		comments := content.Comments
+		field := val.Type().Field(n.FieldIndex)
+		fieldTy := field.Type
+
+		var isSlice bool
+		if fieldTy.Kind() == reflect.Slice {
+			isSlice = true
+			fieldTy = fieldTy.Elem()
+		}
+
+		switch {
+		case isSlice:
+			sli := reflect.MakeSlice(reflect.SliceOf(fieldTy), len(comments), len(comments))
+
+			for i, comment := range comments {
+				sli.Index(i).Set(reflect.ValueOf(comment))
+			}
+
+			val.Field(n.FieldIndex).Set(sli)
+		}
+	}
+
 	return
 }
 
@@ -389,6 +435,7 @@ type fieldTags struct {
 	Blocks     map[string]int
 	Labels     []labelField
 	Flats      []flatField
+	Comments   []commentField
 }
 
 // labelField is a struct that represents info about the struct tags of "vcl".
@@ -401,6 +448,11 @@ type flatField struct {
 	Name       string
 }
 
+type commentField struct {
+	FieldIndex int
+	Name       string
+}
+
 // getFieldTags retrieves the "vcl" tags of the given struct type.
 func getFieldTags(ty reflect.Type) *fieldTags {
 	ret := &fieldTags{
@@ -408,6 +460,7 @@ func getFieldTags(ty reflect.Type) *fieldTags {
 		Blocks:     map[string]int{},
 		Labels:     []labelField{},
 		Flats:      []flatField{},
+		Comments:   []commentField{},
 	}
 
 	ct := ty.NumField()
@@ -440,6 +493,11 @@ func getFieldTags(ty reflect.Type) *fieldTags {
 			})
 		case "flat":
 			ret.Flats = append(ret.Flats, flatField{
+				FieldIndex: i,
+				Name:       name,
+			})
+		case "comment":
+			ret.Comments = append(ret.Comments, commentField{
 				FieldIndex: i,
 				Name:       name,
 			})

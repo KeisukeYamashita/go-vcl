@@ -17,6 +17,9 @@ type Blocks []*Block
 // Flats ...
 type Flats []interface{}
 
+// Comments ...
+type Comments []string
+
 // Block ...
 type Block struct {
 	Type   string
@@ -41,6 +44,7 @@ type BodyContent struct {
 	Attributes Attributes
 	Blocks     Blocks
 	Flats      Flats
+	Comments   Comments
 }
 
 // AttributeSchema ...

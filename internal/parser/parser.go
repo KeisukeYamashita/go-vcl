@@ -308,6 +308,12 @@ func (p *Parser) parseStatement() ast.Statement {
 		default:
 			return p.parseExpressionStatement()
 		}
+	case token.LMULTICOMMENTLINE:
+		return p.parseMultiCommentStatement()
+	case token.HASH:
+		return p.parseCommentStatement()
+	case token.COMMENTLINE:
+		return p.parseCommentStatement()
 	case token.RETURN:
 		return p.parseReturnStatement()
 	case token.CALL:
@@ -396,6 +402,40 @@ func (p *Parser) parseReturnStatement() ast.Statement {
 		p.nextToken()
 	}
 
+	return stmt
+}
+
+func (p *Parser) parseCommentStatement() ast.Statement {
+	stmt := &ast.CommentStatement{
+		Token: p.curToken,
+		Value: p.curToken.Literal,
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseMultiCommentStatement() ast.Statement {
+	stmt := &ast.CommentStatement{
+		Token: p.curToken,
+	}
+
+	var value string
+	p.nextToken()
+	for !p.curTokenIs(token.RMULTICOMMENTLINE) {
+		if p.curTokenIs(token.EOF) {
+			return nil
+		}
+
+		if value == "" {
+			value += p.curToken.Literal
+		} else {
+			value += " " + p.curToken.Literal
+		}
+
+		p.nextToken()
+	}
+
+	stmt.Value = value
 	return stmt
 }
 
