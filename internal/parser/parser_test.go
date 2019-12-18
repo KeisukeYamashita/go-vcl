@@ -142,8 +142,10 @@ func TestCommentStatement(t *testing.T) {
 		input           string
 		expectedComment string
 	}{
-		"with single comment": {"/* keke */", "keke"},
-		"with long comment":   {"/* keke is happy */", "keke is happy"},
+		"with comment line by hash":         {`# keke`, "keke"},
+		"with comment line by double slash": {"// keke", "keke"},
+		"with single comment by multi line": {"/* keke */", "keke"},
+		"with long comment by multi line":   {"/* keke is happy */", "keke is happy"},
 	}
 
 	for n, tc := range testCases {

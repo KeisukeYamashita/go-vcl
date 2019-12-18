@@ -310,6 +310,10 @@ func (p *Parser) parseStatement() ast.Statement {
 		}
 	case token.LMULTICOMMENTLINE:
 		return p.parseMultiCommentStatement()
+	case token.HASH:
+		return p.parseCommentStatement()
+	case token.COMMENTLINE:
+		return p.parseCommentStatement()
 	case token.RETURN:
 		return p.parseReturnStatement()
 	case token.CALL:
@@ -396,6 +400,15 @@ func (p *Parser) parseReturnStatement() ast.Statement {
 
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseCommentStatement() ast.Statement {
+	stmt := &ast.CommentStatement{
+		Token: p.curToken,
+		Value: p.curToken.Literal,
 	}
 
 	return stmt
