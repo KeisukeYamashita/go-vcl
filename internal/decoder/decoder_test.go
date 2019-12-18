@@ -375,9 +375,10 @@ func TestImpliedBodySchema(t *testing.T) {
 
 func TestGetFieldTags(t *testing.T) {
 	type testStruct struct {
-		Type     string      `vcl:"type,label"`
-		Name     string      `vcl:"name"` // implied attribute
-		Resource interface{} `vcl:"resource,block"`
+		Type      string      `vcl:"type,label"`
+		Name      string      `vcl:"name"` // implied attribute
+		Resource  interface{} `vcl:"resource,block"`
+		Comements interface{} `vcl:",comment"`
 	}
 
 	input := &testStruct{
@@ -408,5 +409,8 @@ func TestGetFieldTags(t *testing.T) {
 			t.Fatalf("Blocks length wrong[testCase:%d], got:%d, want:%d", n, len(tags.Blocks), 1)
 		}
 
+		if len(tags.Comments) != 1 {
+			t.Fatalf("Comments length wrong[testCase:%d], got:%d, want:%d", n, len(tags.Comments), 1)
+		}
 	}
 }
