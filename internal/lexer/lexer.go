@@ -77,7 +77,7 @@ func (l *Lexer) readPercentage(number string) string {
 func (l *Lexer) readCommentLine() string {
 	l.readChar()
 	pos := l.pos + 1 // Memo(KeisukeYamashita): Remove the first white space
-	for isNewLine(l.char) {
+	for !isNewLine(l.char) {
 		l.readChar()
 	}
 
