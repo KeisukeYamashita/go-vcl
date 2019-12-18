@@ -27,7 +27,8 @@ func decodeProgramToValue(program *ast.Program, val reflect.Value) []error {
 	switch et.Kind() {
 	case reflect.Struct:
 		return decodeProgramToStruct(program, val)
-	// TODO(KeisukeYamashita): implement map[string]interface{}
+	case reflect.Map:
+		return decodeProgramToMap(program, val)
 	default:
 		panic(fmt.Sprintf("target value must be a pointer to struct, not: %s", et.String()))
 	}
@@ -183,6 +184,28 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 	}
 
 	return nil
+}
+
+func decodeProgramToMap(program *ast.Program, val reflect.Value) []error {
+	var errs []error
+	contents := traversal.Content(program)
+	if contents.Attributes == nil {
+		return nil
+	}
+
+	mv := reflect.MakeMap(val.Type())
+
+	for k, attr := range contents.Attributes {
+		mv.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(attr.Value))
+	}
+
+	blocksByType := contents.Blocks.ByType()
+	for ty, block := range blocksByType {
+		// pp.Println(ty, block)
+	}
+
+	val.Set(mv)
+	return errs
 }
 
 // decodeBlockToStruct decodes a block into a struct passed by val
