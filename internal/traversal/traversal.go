@@ -21,6 +21,7 @@ func convertBody(stmts []ast.Statement) *schema.BodyContent {
 	attrs := make(map[string]*schema.Attribute)
 	var blocks schema.Blocks
 	flats := []interface{}{}
+	comments := []string{}
 
 	for _, stmt := range stmts {
 		switch v := stmt.(type) {
@@ -97,6 +98,8 @@ func convertBody(stmts []ast.Statement) *schema.BodyContent {
 			case *ast.IntegerLiteral:
 				flats = append(flats, expr.Value)
 			}
+		case *ast.CommentStatement:
+			comments = append(comments, v.TokenLiteral())
 		}
 	}
 
@@ -104,6 +107,7 @@ func convertBody(stmts []ast.Statement) *schema.BodyContent {
 		Attributes: attrs,
 		Blocks:     blocks,
 		Flats:      flats,
+		Comments:   comments,
 	}
 
 	return body

@@ -330,6 +330,63 @@ func TestDecodeProgramToStruct_NestedBlock(t *testing.T) {
 	}
 }
 
+func TestDecodeProgramToStruct_Comments(t *testing.T) {
+	type ACL struct {
+		Type     string   `vcl:"type,label"`
+		Comments []string `vcl:",comment"`
+	}
+
+	type Root struct {
+		ACLs     []*ACL   `vcl:"acl,block"`
+		Comments []string `vcl:",comment"`
+	}
+
+	testCases := map[string]struct {
+		input    string
+		val      interface{}
+		expected interface{}
+	}{
+		"with root comment by hash": {
+			`# keke`, &Root{}, &Root{Comments: []string{"keke"}, ACLs: []*ACL{}},
+		},
+		"with root comment by double slash": {
+			`// keke`, &Root{}, &Root{Comments: []string{"keke"}, ACLs: []*ACL{}},
+		},
+		"with root by double slash with block": {
+			`// keke
+acl "tag" {}		
+`, &Root{}, &Root{Comments: []string{"keke"}, ACLs: []*ACL{&ACL{Type: "tag", Comments: []string{}}}},
+		},
+		"with nested block": {
+			`// keke
+acl "tag" {
+	// internal-keke
+	"localhost";
+}		
+`, &Root{}, &Root{Comments: []string{"keke"}, ACLs: []*ACL{&ACL{Type: "tag", Comments: []string{"internal-keke"}}}},
+		},
+	}
+
+	for n, tc := range testCases {
+		t.Run(n, func(t *testing.T) {
+			l := lexer.NewLexer(tc.input)
+			p := parser.NewParser(l)
+			program := p.ParseProgram()
+			root := tc.val
+			val := reflect.ValueOf(root).Elem()
+			errs := decodeProgramToStruct(program, val)
+
+			if len(errs) > 0 {
+				t.Fatalf("decodeProgramToStruct_Block has errorr, err:%v", errs)
+			}
+
+			if !reflect.DeepEqual(tc.val, tc.expected) {
+				t.Fatalf("decodeProgramToStruct_Block got wrong result, got:%#v", tc.val)
+			}
+		})
+	}
+}
+
 func TestImpliedBodySchema(t *testing.T) {
 	type testBlock struct {
 		Type       string `vcl:"type,label"`

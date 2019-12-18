@@ -159,6 +159,29 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 		}
 	}
 
+	for _, n := range tags.Comments {
+		comments := content.Comments
+		field := val.Type().Field(n.FieldIndex)
+		fieldTy := field.Type
+
+		var isSlice bool
+		if fieldTy.Kind() == reflect.Slice {
+			isSlice = true
+			fieldTy = fieldTy.Elem()
+		}
+
+		switch {
+		case isSlice:
+			sli := reflect.MakeSlice(reflect.SliceOf(fieldTy), len(comments), len(comments))
+
+			for i, comment := range comments {
+				sli.Index(i).Set(reflect.ValueOf(comment))
+			}
+
+			val.Field(n.FieldIndex).Set(sli)
+		}
+	}
+
 	return nil
 }
 
@@ -292,6 +315,29 @@ func decodeBlockToStruct(block *schema.Block, val reflect.Value) {
 				} else {
 					sli.Index(i).Set(reflect.ValueOf(flat))
 				}
+			}
+
+			val.Field(n.FieldIndex).Set(sli)
+		}
+	}
+
+	for _, n := range tags.Comments {
+		comments := content.Comments
+		field := val.Type().Field(n.FieldIndex)
+		fieldTy := field.Type
+
+		var isSlice bool
+		if fieldTy.Kind() == reflect.Slice {
+			isSlice = true
+			fieldTy = fieldTy.Elem()
+		}
+
+		switch {
+		case isSlice:
+			sli := reflect.MakeSlice(reflect.SliceOf(fieldTy), len(comments), len(comments))
+
+			for i, comment := range comments {
+				sli.Index(i).Set(reflect.ValueOf(comment))
 			}
 
 			val.Field(n.FieldIndex).Set(sli)
