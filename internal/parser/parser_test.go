@@ -354,32 +354,50 @@ func TestIdentifierExpression(t *testing.T) {
 }
 
 func TestIntegerLiteralExpression(t *testing.T) {
-	input := "5;"
-
-	l := lexer.NewLexer(input)
-	p := NewParser(l)
-	program := p.ParseProgram()
-
-	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements length is not expected, got:%d, want:%d", len(program.Statements), 1)
+	testCases := map[string]struct {
+		input       string
+		expected    int64
+		shouldError bool
+	}{
+		"with single integer":        {"5;", 5, false},
+		"with invalid float integer": {"5.0;", 5, true},
 	}
 
-	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
-	if !ok {
-		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got:%T", program.Statements[0])
-	}
+	for n, tc := range testCases {
+		t.Run(n, func(t *testing.T) {
+			l := lexer.NewLexer(tc.input)
+			p := NewParser(l)
+			program := p.ParseProgram()
 
-	ident, ok := stmt.Expression.(*ast.IntegerLiteral)
-	if !ok {
-		t.Fatalf("exp not *ast.Identifier, got:%T", stmt.Expression)
-	}
+			if len(program.Statements) != 1 {
+				if tc.shouldError {
+					return
+				}
+				t.Fatalf("program.Statements length is not expected, got:%d, want:%d", len(program.Statements), 1)
+			}
 
-	if ident.Value != 5 {
-		t.Fatalf("ident.Value wrong, got:%d, want:%d", ident.Value, 5)
-	}
+			if tc.shouldError {
+				t.Fatalf("test should fail but successed")
+			}
 
-	if ident.TokenLiteral() != "5" {
-		t.Errorf("ident.TokenLiteral wrong, got:%s, want:%s", ident.TokenLiteral(), "5")
+			stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+			if !ok {
+				t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got:%T", program.Statements[0])
+			}
+
+			ident, ok := stmt.Expression.(*ast.IntegerLiteral)
+			if !ok {
+				t.Fatalf("exp not *ast.Identifier, got:%T", stmt.Expression)
+			}
+
+			if ident.Value != tc.expected {
+				t.Fatalf("ident.Value wrong, got:%d, want:%d", ident.Value, 5)
+			}
+
+			if ident.TokenLiteral() != "5" {
+				t.Errorf("ident.TokenLiteral wrong, got:%s, want:%s", ident.TokenLiteral(), "5")
+			}
+		})
 	}
 }
 
