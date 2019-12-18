@@ -387,6 +387,45 @@ acl "tag" {
 	}
 }
 
+func TestDecodeProgramToMap(t *testing.T) {
+	testCases := map[string]struct {
+		input    string
+		val      map[string]interface{}
+		expected map[string]interface{}
+	}{
+		"with single attr": {`x = hello`, map[string]interface{}{}, map[string]interface{}{"x": "hello"}},
+		"with multiple attr": {`x = hello;
+y = bye`, map[string]interface{}{}, map[string]interface{}{"x": "hello", "y": "bye"}},
+		"with single block": {`acl hello {x = "test"}`, map[string]interface{}{}, map[string]interface{}{"acl": map[string]interface{}{"hello": map[string]interface{}{"x": "test"}}}},
+		"with multiple block": {`acl hello {
+	x = "test";
+}
+
+acl bye {
+	y = "keke";
+}
+`, map[string]interface{}{}, map[string]interface{}{"acl": map[string]interface{}{"hello": map[string]interface{}{"x": "test"}, "bye": map[string]interface{}{"y": "keke"}}}},
+	}
+
+	for n, tc := range testCases {
+		t.Run(n, func(t *testing.T) {
+			l := lexer.NewLexer(tc.input)
+			p := parser.NewParser(l)
+			program := p.ParseProgram()
+			val := reflect.ValueOf(&tc.val).Elem()
+			errs := decodeProgramToMap(program, val)
+
+			if len(errs) > 0 {
+				t.Fatalf("decodeProgramToStruct has errors, err:%v", errs)
+			}
+
+			if !reflect.DeepEqual(&tc.val, &tc.expected) {
+				t.Fatalf("decodeProgramToStruct got wrong result got:%v want:%v", tc.val, tc.expected)
+			}
+		})
+	}
+}
+
 func TestImpliedBodySchema(t *testing.T) {
 	type testBlock struct {
 		Type       string `vcl:"type,label"`
