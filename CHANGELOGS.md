@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Released
 
-## [0.0.1] - 2019-12-11
+## 0.2.0 - 2019-12-16
 
-### Added
+### Add
+
+* `director` block support
+* `table` block support
+* `comment` flag
+
+## 0.1.0 - 2019-12-11
+
+### Add
 
 * Initial commit
 * Add fundamental decode features
