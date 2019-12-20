@@ -193,35 +193,46 @@ func decodeProgramToMap(program *ast.Program, val reflect.Value) []error {
 		return nil
 	}
 
-	mv := reflect.MakeMap(val.Type())
+	var mv reflect.Value
+	if len(content.Attributes) > 0 || len(content.Blocks) > 0 {
+		mv = reflect.MakeMap(val.Type())
 
-	for k, attr := range content.Attributes {
-		mv.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(attr.Value))
-	}
-
-	blocksByType := content.Blocks.ByType()
-
-	for tyName, blocks := range blocksByType {
-		mp := reflect.MakeMap(val.Type())
-		for _, block := range blocks {
-			v := reflect.New(val.Type()).Elem()
-			decodeBlockToMap(block, v)
-
-			var blockType string
-			if len(block.Labels) > 0 {
-				blockType = block.Labels[0]
-			}
-
-			for _, label := range block.Labels[1:] {
-				tmpMap := reflect.MakeMap(val.Type())
-				tmpMap.SetMapIndex(reflect.ValueOf(label), v)
-				v = tmpMap
-			}
-
-			mp.SetMapIndex(reflect.ValueOf(blockType), v)
+		for k, attr := range content.Attributes {
+			mv.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(attr.Value))
 		}
 
-		mv.SetMapIndex(reflect.ValueOf(tyName), mp)
+		blocksByType := content.Blocks.ByType()
+
+		for tyName, blocks := range blocksByType {
+			mp := reflect.MakeMap(val.Type())
+			for _, block := range blocks {
+				content := traversal.BodyContent(block.Body)
+				var v reflect.Value
+				var blockType string
+				if len(block.Labels) > 0 {
+					blockType = block.Labels[0]
+				}
+
+				if len(content.Attributes) > 0 || len(content.Blocks) > 0 {
+					v = reflect.New(val.Type()).Elem()
+					decodeBlockToMap(block, v)
+
+					for _, label := range block.Labels[1:] {
+						tmpMap := reflect.MakeMap(val.Type())
+						tmpMap.SetMapIndex(reflect.ValueOf(label), v)
+						v = tmpMap
+					}
+				} else {
+					v = reflect.MakeSlice(reflect.TypeOf([]interface{}{}), len(content.Flats), len(content.Flats))
+					for i, flat := range content.Flats {
+						v.Index(i).Set(reflect.ValueOf(flat))
+					}
+				}
+				mp.SetMapIndex(reflect.ValueOf(blockType), v)
+			}
+
+			mv.SetMapIndex(reflect.ValueOf(tyName), mp)
+		}
 	}
 
 	val.Set(mv)
