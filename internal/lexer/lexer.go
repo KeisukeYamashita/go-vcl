@@ -6,7 +6,7 @@ import (
 	"github.com/KeisukeYamashita/go-vcl/internal/token"
 )
 
-// Lexer ...
+// Lexer is a struct for tokenization
 type Lexer struct {
 	input   string
 	pos     int
@@ -14,7 +14,7 @@ type Lexer struct {
 	char    byte
 }
 
-// NewLexer ...
+// NewLexer returns the lexer with givin string input
 func NewLexer(input string) *Lexer {
 	l := &Lexer{
 		input: input,
@@ -38,7 +38,7 @@ func (l *Lexer) readChar() {
 	l.readPos++
 }
 
-// readIndentifier ...
+// readIndentifier reads the indentifier
 func (l *Lexer) readIndentifier() string {
 	pos := l.pos
 	for isLetter(l.char) || isDigit(l.char) {
@@ -175,7 +175,7 @@ func (l *Lexer) NextToken() token.Token {
 		}
 		tok.Literal = s
 	case '|':
-		// it will be always &&
+		// it will be always ||
 		if l.peekChar() == '|' {
 			char := l.char
 			l.readChar()
