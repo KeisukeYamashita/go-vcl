@@ -12,6 +12,8 @@ import (
 	"github.com/KeisukeYamashita/go-vcl/internal/traversal"
 )
 
+var attrType = reflect.TypeOf((*schema.Attribute)(nil))
+
 // Decode is a function for mapping the program of parser output to your custom struct.
 func Decode(program *ast.Program, val interface{}) []error {
 	rv := reflect.ValueOf(val)
@@ -34,13 +36,20 @@ func decodeProgramToValue(program *ast.Program, val reflect.Value) []error {
 	}
 }
 
-var attrType = reflect.TypeOf((*schema.Attribute)(nil))
-
 func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
-	errs := []error{}
 	content := traversal.Content(program)
+	return decodeContentToStruct(content, val)
+}
 
+func decodeContentToStruct(content *schema.BodyContent, val reflect.Value) []error {
 	tags := getFieldTags(val.Type())
+	decodeAttr(content, tags, val)
+	decodeFlats(content.Flats, tags, val)
+	decodeComments(content.Comments, tags, val)
+	return decodeBlocks(content.Blocks, tags, val)
+}
+
+func decodeAttr(content *schema.BodyContent, tags *fieldTags, val reflect.Value) {
 	for name, fieldIdx := range tags.Attributes {
 		attr := content.Attributes[name]
 		field := val.Type().Field(fieldIdx)
@@ -59,8 +68,11 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 			fieldV.Set(reflect.ValueOf(attr.Value))
 		}
 	}
+}
 
-	blocksByType := content.Blocks.ByType()
+func decodeBlocks(blocks schema.Blocks, tags *fieldTags, val reflect.Value) []error {
+	errs := []error{}
+	blocksByType := blocks.ByType()
 
 	for typeName, fieldIdx := range tags.Blocks {
 		blocks := blocksByType[typeName]
@@ -114,6 +126,7 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 		default:
 			if isPtr {
 				v := reflect.New(ty)
+				decodeBlockToStruct(blocks[0], v.Elem())
 				val.Field(fieldIdx).Set(v)
 			} else {
 				errs = append(errs, errors.New("block is not a pointer"))
@@ -121,8 +134,28 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 		}
 	}
 
+	return errs
+}
+
+// decodeBlockToStruct decodes a block into a struct passed by val
+func decodeBlockToStruct(block *schema.Block, val reflect.Value) []error {
+	tags := getFieldTags(val.Type())
+
+	for i, n := range tags.Labels {
+		if i+1 > len(block.Labels) {
+			continue
+		}
+		label := block.Labels[i]
+		fieldV := val.Field(n.FieldIndex)
+		fieldV.Set(reflect.ValueOf(label))
+	}
+
+	content := traversal.BodyContent(block.Body)
+	return decodeContentToStruct(content, val)
+}
+
+func decodeFlats(flats schema.Flats, tags *fieldTags, val reflect.Value) {
 	for _, n := range tags.Flats {
-		flats := content.Flats
 		field := val.Type().Field(n.FieldIndex)
 		ty := field.Type
 
@@ -150,6 +183,7 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 			for i, flat := range flats {
 				if isPtr {
 					v := reflect.New(ty)
+					decodeBlockToStruct(flat.(*schema.Block), v.Elem())
 					sli.Index(i).Set(v)
 				} else {
 					sli.Index(i).Set(reflect.ValueOf(flat))
@@ -159,9 +193,10 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 			val.Field(n.FieldIndex).Set(sli)
 		}
 	}
+}
 
+func decodeComments(comments schema.Comments, tags *fieldTags, val reflect.Value) {
 	for _, n := range tags.Comments {
-		comments := content.Comments
 		field := val.Type().Field(n.FieldIndex)
 		fieldTy := field.Type
 
@@ -182,8 +217,6 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 			val.Field(n.FieldIndex).Set(sli)
 		}
 	}
-
-	return nil
 }
 
 func decodeProgramToMap(program *ast.Program, val reflect.Value) []error {
@@ -281,168 +314,6 @@ func decodeBlockToMap(block *schema.Block, val reflect.Value) {
 	}
 
 	val.Set(mv)
-}
-
-// decodeBlockToStruct decodes a block into a struct passed by val
-func decodeBlockToStruct(block *schema.Block, val reflect.Value) {
-	var errs []error
-	tags := getFieldTags(val.Type())
-	content := traversal.BodyContent(block.Body)
-
-	for i, n := range tags.Labels {
-		if i+1 > len(block.Labels) {
-			continue
-		}
-		label := block.Labels[i]
-		fieldV := val.Field(n.FieldIndex)
-		fieldV.Set(reflect.ValueOf(label))
-	}
-
-	for name, fieldIdx := range tags.Attributes {
-		attr := content.Attributes[name]
-		field := val.Type().Field(fieldIdx)
-		fieldTy := field.Type
-		fieldV := val.Field(fieldIdx)
-
-		if attr == nil {
-			fieldV.Set(reflect.Zero(field.Type))
-			continue
-		}
-
-		switch {
-		case attrType.AssignableTo(field.Type):
-			fieldV.Set(reflect.ValueOf(attr))
-		case fieldTy.AssignableTo(reflect.ValueOf(attr.Value).Type()):
-			fieldV.Set(reflect.ValueOf(attr.Value))
-		}
-	}
-
-	blocksByType := content.Blocks.ByType()
-
-	for typeName, fieldIdx := range tags.Blocks {
-		blocks := blocksByType[typeName]
-		field := val.Type().Field(fieldIdx)
-		ty := field.Type
-
-		var isSlice bool
-		var isPtr bool
-		if ty.Kind() == reflect.Slice {
-			isSlice = true
-			ty = ty.Elem()
-		}
-
-		if ty.Kind() == reflect.Ptr {
-			isPtr = true
-			ty = ty.Elem()
-		}
-
-		if len(blocks) > 1 && !isSlice {
-			errs = append(errs, errors.New("more than one block but the field type is not slice"))
-		}
-
-		if len(blocks) == 0 {
-			if isSlice || isPtr {
-				val.Field(fieldIdx).Set(reflect.Zero(field.Type))
-			} else {
-				errs = append(errs, errors.New("no block"))
-			}
-		}
-
-		switch {
-		case isSlice:
-			elemType := ty
-			if isPtr {
-				elemType = reflect.PtrTo(ty)
-			}
-
-			sli := reflect.MakeSlice(reflect.SliceOf(elemType), len(blocks), len(blocks))
-
-			for i, block := range blocks {
-				if isPtr {
-					v := reflect.New(ty)
-					decodeBlockToStruct(block, v.Elem())
-					sli.Index(i).Set(v)
-				} else {
-					errs = append(errs, errors.New("block is not a pointer"))
-				}
-			}
-
-			val.Field(fieldIdx).Set(sli)
-		default:
-			if isPtr {
-				v := reflect.New(ty)
-				decodeBlockToStruct(blocks[0], v.Elem())
-				val.Field(fieldIdx).Set(v)
-			} else {
-				errs = append(errs, errors.New("block is not a pointer"))
-			}
-		}
-	}
-
-	for _, n := range tags.Flats {
-		flats := content.Flats
-		field := val.Type().Field(n.FieldIndex)
-		ty := field.Type
-
-		var isSlice bool
-		var isPtr bool
-		if ty.Kind() == reflect.Slice {
-			isSlice = true
-			ty = ty.Elem()
-		}
-
-		if ty.Kind() == reflect.Ptr {
-			isPtr = true
-			ty = ty.Elem()
-		}
-
-		switch {
-		case isSlice:
-			elemType := ty
-			if isPtr {
-				elemType = reflect.PtrTo(ty)
-			}
-
-			sli := reflect.MakeSlice(reflect.SliceOf(elemType), len(flats), len(flats))
-
-			for i, flat := range flats {
-				if isPtr {
-					v := reflect.New(ty)
-					decodeBlockToStruct(flat.(*schema.Block), v.Elem())
-					sli.Index(i).Set(v)
-				} else {
-					sli.Index(i).Set(reflect.ValueOf(flat))
-				}
-			}
-
-			val.Field(n.FieldIndex).Set(sli)
-		}
-	}
-
-	for _, n := range tags.Comments {
-		comments := content.Comments
-		field := val.Type().Field(n.FieldIndex)
-		fieldTy := field.Type
-
-		var isSlice bool
-		if fieldTy.Kind() == reflect.Slice {
-			isSlice = true
-			fieldTy = fieldTy.Elem()
-		}
-
-		switch {
-		case isSlice:
-			sli := reflect.MakeSlice(reflect.SliceOf(fieldTy), len(comments), len(comments))
-
-			for i, comment := range comments {
-				sli.Index(i).Set(reflect.ValueOf(comment))
-			}
-
-			val.Field(n.FieldIndex).Set(sli)
-		}
-	}
-
-	return
 }
 
 // imipliedBodySchema will retrieves the root body schema from the given val.
