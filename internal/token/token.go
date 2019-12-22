@@ -56,7 +56,7 @@ const (
 	DIRECTOR   = "DIRECTOR"
 )
 
-// NewToken ...
+// NewToken returns a token from token type and current char input
 func NewToken(tokenType Type, char byte) Token {
 	return Token{
 		Type:    tokenType,
@@ -79,7 +79,7 @@ var keywords = map[string]Type{
 	"director": DIRECTOR,
 }
 
-// LookupIndent ...
+// LookupIndent returns keywork if hit from the identifier.
 func LookupIndent(indent string) Type {
 	if tokenType, ok := keywords[indent]; ok {
 		return tokenType

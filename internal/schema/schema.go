@@ -8,19 +8,19 @@ type File struct {
 // Body contains multiple attributes and blocks
 type Body interface{}
 
-// Attributes ...
+// Attributes are like field of objects
 type Attributes map[string]*Attribute
 
-// Blocks ...
+// Blocks are block types containing other block
 type Blocks []*Block
 
-// Flats ...
+// Flats are attributes that are not key-value
 type Flats []interface{}
 
-// Comments ...
+// Comments are comment lines
 type Comments []string
 
-// Block ...
+// Block ais a structure which contains block header, labels and body
 type Block struct {
 	Type   string
 	Labels []string
@@ -33,13 +33,13 @@ type BodySchema struct {
 	Blocks     []BlockHeaderSchema
 }
 
-// Attribute ...
+// Attribute are field of the object
 type Attribute struct {
 	Name  string
 	Value interface{}
 }
 
-// BodyContent ...
+// BodyContent is a content from body
 type BodyContent struct {
 	Attributes Attributes
 	Blocks     Blocks
@@ -47,13 +47,13 @@ type BodyContent struct {
 	Comments   Comments
 }
 
-// AttributeSchema ...
+// AttributeSchema is the desired attribute
 type AttributeSchema struct {
 	Name     string
 	Required bool
 }
 
-// BlockHeaderSchema ...
+// BlockHeaderSchema is the desired block
 type BlockHeaderSchema struct {
 	Type       string
 	LabelNames []string
