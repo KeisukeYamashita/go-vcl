@@ -12,6 +12,8 @@ import (
 	"github.com/KeisukeYamashita/go-vcl/internal/traversal"
 )
 
+var attrType = reflect.TypeOf((*schema.Attribute)(nil))
+
 // Decode is a function for mapping the program of parser output to your custom struct.
 func Decode(program *ast.Program, val interface{}) []error {
 	rv := reflect.ValueOf(val)
@@ -33,8 +35,6 @@ func decodeProgramToValue(program *ast.Program, val reflect.Value) []error {
 		panic(fmt.Sprintf("target value must be a pointer to struct, not: %s", et.String()))
 	}
 }
-
-var attrType = reflect.TypeOf((*schema.Attribute)(nil))
 
 func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 	errs := []error{}
@@ -184,103 +184,6 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 	}
 
 	return nil
-}
-
-func decodeProgramToMap(program *ast.Program, val reflect.Value) []error {
-	var errs []error
-	content := traversal.Content(program)
-	if content.Attributes == nil {
-		return nil
-	}
-
-	var mv reflect.Value
-	if len(content.Attributes) > 0 || len(content.Blocks) > 0 {
-		mv = reflect.MakeMap(val.Type())
-
-		for k, attr := range content.Attributes {
-			mv.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(attr.Value))
-		}
-
-		blocksByType := content.Blocks.ByType()
-
-		for tyName, blocks := range blocksByType {
-			mp := reflect.MakeMap(val.Type())
-			for _, block := range blocks {
-				content := traversal.BodyContent(block.Body)
-				var v reflect.Value
-				var blockType string
-				if len(block.Labels) > 0 {
-					blockType = block.Labels[0]
-				}
-
-				if len(content.Attributes) > 0 || len(content.Blocks) > 0 {
-					v = reflect.New(val.Type()).Elem()
-					decodeBlockToMap(block, v)
-
-					for _, label := range block.Labels[1:] {
-						tmpMap := reflect.MakeMap(val.Type())
-						tmpMap.SetMapIndex(reflect.ValueOf(label), v)
-						v = tmpMap
-					}
-				} else {
-					v = reflect.MakeSlice(reflect.TypeOf([]interface{}{}), len(content.Flats), len(content.Flats))
-					for i, flat := range content.Flats {
-						v.Index(i).Set(reflect.ValueOf(flat))
-					}
-				}
-				mp.SetMapIndex(reflect.ValueOf(blockType), v)
-			}
-
-			mv.SetMapIndex(reflect.ValueOf(tyName), mp)
-		}
-	}
-
-	val.Set(mv)
-	return errs
-}
-
-func decodeBlockToMap(block *schema.Block, val reflect.Value) {
-	content := traversal.BodyContent(block.Body)
-	mv := reflect.MakeMap(val.Type())
-
-	for k, attr := range content.Attributes {
-		mv.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(attr.Value))
-	}
-
-	blocksByType := content.Blocks.ByType()
-
-	for tyName, blocks := range blocksByType {
-		var isSlice bool
-		if len(blocks) != 1 {
-			isSlice = true
-		}
-
-		switch {
-		case isSlice:
-			sli := reflect.MakeSlice(reflect.SliceOf(val.Type()), len(blocks), len(blocks))
-			for i, block := range blocks {
-				v := reflect.New(val.Type()).Elem()
-				decodeBlockToMap(block, v)
-
-				for _, label := range block.Labels {
-					tmpMap := reflect.MakeMap(val.Type())
-					tmpMap.SetMapIndex(reflect.ValueOf(label), v)
-					v = tmpMap
-				}
-
-				sli.Index(i).Set(v)
-			}
-
-			mv.SetMapIndex(reflect.ValueOf(tyName), sli)
-		default:
-			block := blocks[0]
-			v := reflect.New(val.Type()).Elem()
-			decodeBlockToMap(block, v)
-			mv.SetMapIndex(reflect.ValueOf(tyName), v)
-		}
-	}
-
-	val.Set(mv)
 }
 
 // decodeBlockToStruct decodes a block into a struct passed by val
@@ -443,6 +346,103 @@ func decodeBlockToStruct(block *schema.Block, val reflect.Value) {
 	}
 
 	return
+}
+
+func decodeProgramToMap(program *ast.Program, val reflect.Value) []error {
+	var errs []error
+	content := traversal.Content(program)
+	if content.Attributes == nil {
+		return nil
+	}
+
+	var mv reflect.Value
+	if len(content.Attributes) > 0 || len(content.Blocks) > 0 {
+		mv = reflect.MakeMap(val.Type())
+
+		for k, attr := range content.Attributes {
+			mv.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(attr.Value))
+		}
+
+		blocksByType := content.Blocks.ByType()
+
+		for tyName, blocks := range blocksByType {
+			mp := reflect.MakeMap(val.Type())
+			for _, block := range blocks {
+				content := traversal.BodyContent(block.Body)
+				var v reflect.Value
+				var blockType string
+				if len(block.Labels) > 0 {
+					blockType = block.Labels[0]
+				}
+
+				if len(content.Attributes) > 0 || len(content.Blocks) > 0 {
+					v = reflect.New(val.Type()).Elem()
+					decodeBlockToMap(block, v)
+
+					for _, label := range block.Labels[1:] {
+						tmpMap := reflect.MakeMap(val.Type())
+						tmpMap.SetMapIndex(reflect.ValueOf(label), v)
+						v = tmpMap
+					}
+				} else {
+					v = reflect.MakeSlice(reflect.TypeOf([]interface{}{}), len(content.Flats), len(content.Flats))
+					for i, flat := range content.Flats {
+						v.Index(i).Set(reflect.ValueOf(flat))
+					}
+				}
+				mp.SetMapIndex(reflect.ValueOf(blockType), v)
+			}
+
+			mv.SetMapIndex(reflect.ValueOf(tyName), mp)
+		}
+	}
+
+	val.Set(mv)
+	return errs
+}
+
+func decodeBlockToMap(block *schema.Block, val reflect.Value) {
+	content := traversal.BodyContent(block.Body)
+	mv := reflect.MakeMap(val.Type())
+
+	for k, attr := range content.Attributes {
+		mv.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(attr.Value))
+	}
+
+	blocksByType := content.Blocks.ByType()
+
+	for tyName, blocks := range blocksByType {
+		var isSlice bool
+		if len(blocks) != 1 {
+			isSlice = true
+		}
+
+		switch {
+		case isSlice:
+			sli := reflect.MakeSlice(reflect.SliceOf(val.Type()), len(blocks), len(blocks))
+			for i, block := range blocks {
+				v := reflect.New(val.Type()).Elem()
+				decodeBlockToMap(block, v)
+
+				for _, label := range block.Labels {
+					tmpMap := reflect.MakeMap(val.Type())
+					tmpMap.SetMapIndex(reflect.ValueOf(label), v)
+					v = tmpMap
+				}
+
+				sli.Index(i).Set(v)
+			}
+
+			mv.SetMapIndex(reflect.ValueOf(tyName), sli)
+		default:
+			block := blocks[0]
+			v := reflect.New(val.Type()).Elem()
+			decodeBlockToMap(block, v)
+			mv.SetMapIndex(reflect.ValueOf(tyName), v)
+		}
+	}
+
+	val.Set(mv)
 }
 
 // imipliedBodySchema will retrieves the root body schema from the given val.
