@@ -42,13 +42,11 @@ func decodeProgramToStruct(program *ast.Program, val reflect.Value) []error {
 }
 
 func decodeContentToStruct(content *schema.BodyContent, val reflect.Value) []error {
-	errs := []error{}
 	tags := getFieldTags(val.Type())
 	decodeAttr(content, tags, val)
-	errs = decodeBlocks(content.Blocks, tags, val)
 	decodeFlats(content.Flats, tags, val)
 	decodeComments(content.Comments, tags, val)
-	return errs
+	return decodeBlocks(content.Blocks, tags, val)
 }
 
 func decodeAttr(content *schema.BodyContent, tags *fieldTags, val reflect.Value) {
