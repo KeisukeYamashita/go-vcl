@@ -30,9 +30,9 @@ func TestDecode(t *testing.T) {
 	}
 
 	for n, tc := range testCases {
-		err := Decode(tc.input, tc.val)
-		if err != nil {
-			t.Fatalf("decode failed with error[testcase:%d], error:%v", n, err)
+		errs := Decode(tc.input, tc.val)
+		if len(errs) > 0 {
+			t.Fatalf("decode failed with error[testcase:%d], error:%v", n, errs)
 		}
 
 		if !reflect.DeepEqual(tc.val, tc.expectedVal) {
