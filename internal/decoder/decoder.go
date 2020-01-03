@@ -277,7 +277,8 @@ func decodeBlockToMap(block *schema.Block, val reflect.Value) {
 	mv := reflect.MakeMap(val.Type())
 
 	for k, attr := range content.Attributes {
-		mv.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(attr.Value))
+		key := removeAttrDot(k)
+		mv.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(attr.Value))
 	}
 
 	blocksByType := content.Blocks.ByType()
@@ -476,4 +477,13 @@ func getFieldTags(ty reflect.Type) *fieldTags {
 	}
 
 	return ret
+}
+
+func removeAttrDot(v interface{}) interface{} {
+	str, ok := v.(string)
+	if !ok {
+		return v
+	}
+
+	return strings.Trim(str, ".")
 }
