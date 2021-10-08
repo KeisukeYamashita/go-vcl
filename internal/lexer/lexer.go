@@ -74,19 +74,6 @@ func (l *Lexer) readPercentage(number string) string {
 	return number + "%"
 }
 
-func (l *Lexer) readCommentLine() string {
-	l.readChar()
-	pos := l.pos + 1 // Memo(KeisukeYamashita): Remove the first white space
-	for !isNewLine(l.char) {
-		l.readChar()
-		if l.char == 0 {
-			break
-		}
-	}
-
-	return l.input[pos:l.pos]
-}
-
 func (l *Lexer) peekChar() byte {
 	if l.readPos >= len(l.input) {
 		return 0
@@ -133,12 +120,12 @@ func (l *Lexer) NextToken() token.Token {
 	case ';':
 		tok = token.NewToken(token.SEMICOLON, l.char)
 	case '#':
-		literal := l.readCommentLine()
-		tok = token.Token{Type: token.HASH, Literal: literal}
+		tok = token.NewToken(token.HASH, l.char)
 	case '/':
 		if l.peekCharIs('/') {
+			char := l.char
 			l.readChar()
-			literal := l.readCommentLine()
+			literal := string(char) + string(l.char)
 			tok = token.Token{Type: token.COMMENTLINE, Literal: literal}
 		} else if l.peekCharIs('*') {
 			char := l.char
