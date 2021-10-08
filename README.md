@@ -1,14 +1,16 @@
 # VCL
 
-> VCL parser written in Go
+```
+      ::::::::   ::::::::    :::     :::  ::::::::  :::  
+    :+:    :+: :+:    :+:   :+:     :+: :+:    :+: :+:   
+   +:+        +:+    +:+   +:+     +:+ +:+        +:+    
+  :#:        +#+    +:+   +#+     +:+ +#+        +#+     
+ +#+   +#+# +#+    +#+    +#+   +#+  +#+        +#+      
+#+#    #+# #+#    #+#     #+#+#+#   #+#    #+# #+#       
+########   ########        ###      ########  ########## 
+```
 
-<figure style="margin:40px 0px;text-align:center">
-  <img src="./_images/logo.png" style="width:100%"/>
-  <figcaption style="text-align:center">
-    <h2>go-vcl</h2>
-    <h4>Go written VCL parser</h4>
-  </figcaption>
-</figure>
+> VCL parser written in Go
 
 
 [![GitHub Actions][github-actions-badge]][github-actions]
