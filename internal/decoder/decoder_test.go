@@ -417,7 +417,13 @@ acl bye {
 	y = "keke";
 }
 `, map[string]interface{}{}, map[string]interface{}{"acl": map[string]interface{}{"hello": map[string]interface{}{"x": "test"}, "bye": map[string]interface{}{"y": "keke"}}}},
-	}
+		"with flat block": {`acl hello {
+	"localhost";
+	"local";
+}`, map[string]interface{}{}, map[string]interface{}{"acl": map[string]interface{}{"hello": []interface{}{"localhost", "local"}}}},
+		"with dot attribute block": {`backend default {
+	.port = "8080";
+}`, map[string]interface{}{}, map[string]interface{}{"backend": map[string]interface{}{"default": map[string]interface{}{"port": "8080"}}}}}
 
 	for n, tc := range testCases {
 		t.Run(n, func(t *testing.T) {

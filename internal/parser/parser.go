@@ -33,7 +33,7 @@ type (
 	infixParseFn  func(ast.Expression) ast.Expression
 )
 
-// Parser ...
+// Parser is a struct that contains a lexer and parse spec
 type Parser struct {
 	l         *lexer.Lexer
 	curToken  token.Token
@@ -44,7 +44,7 @@ type Parser struct {
 	infixParseFn  map[token.Type]infixParseFn
 }
 
-// NewParser ...
+// NewParser returns a parser by lexer
 func NewParser(l *lexer.Lexer) *Parser {
 	p := &Parser{
 		l:      l,
@@ -284,7 +284,7 @@ func (p *Parser) nextToken() {
 	p.peekToken = p.l.NextToken()
 }
 
-// ParseProgram ...
+// ParseProgram parses the program from the lexers input
 func (p *Parser) ParseProgram() *ast.Program {
 	program := new(ast.Program)
 	program.Statements = []ast.Statement{}

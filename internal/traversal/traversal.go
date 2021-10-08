@@ -11,7 +11,7 @@ func Content(prog *ast.Program) *schema.BodyContent {
 	return b
 }
 
-// BodyContent ...
+// BodyContent retrives body content from body
 func BodyContent(body schema.Body) *schema.BodyContent {
 	return body.(*schema.BodyContent)
 }

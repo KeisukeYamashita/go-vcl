@@ -2,7 +2,7 @@ package ast
 
 import "github.com/KeisukeYamashita/go-vcl/internal/token"
 
-// Program ...
+// Program represents a single program file
 type Program struct {
 	Statements []Statement
 }
