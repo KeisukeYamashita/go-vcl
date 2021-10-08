@@ -101,9 +101,6 @@ go-vcl is released under the MIT license.
 
 * [KeisukeYamashita](https://github.com/KeisukeYamashita)
 
-## Logo
-
-Icon made by Vitaly Gorbachev perfect from www.flaticon.com
 
 <!-- badge links -->
 
